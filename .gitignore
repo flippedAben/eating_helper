@@ -1,0 +1,7 @@
+*.pyc
+*.pyo
+*.json
+*.sqlite
+secrets.py
+recipes.yaml
+weekly_meal_plan.yaml
