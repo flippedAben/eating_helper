@@ -69,15 +69,13 @@ def get_foods_by_id(fdc_ids, abridged=False) -> List:
     # individually.
     if abridged:
         chunks = [
-            fdc_ids[i:i + USDA_API_MAX_CHUNK_SIZE]
+            fdc_ids[i : i + USDA_API_MAX_CHUNK_SIZE]
             for i in range(0, len(fdc_ids), USDA_API_MAX_CHUNK_SIZE)
         ]
 
         for ids in chunks:
             ids_str = ",".join([str(i) for i in ids])
-            url = (
-                f"{USDA_URL}/foods?api_key={USDA_API_KEY}&format=abridged&fdcIds={ids_str}"
-            )
+            url = f"{USDA_URL}/foods?api_key={USDA_API_KEY}&format=abridged&fdcIds={ids_str}"
             response = requests.get(url)
             result.extend(response.json())
     else:
@@ -222,7 +220,7 @@ def create_grocery_list():
     fdc_id_to_info = map_fdc_ids_to_info(fdc_ids)
     service = get_google_tasks_service()
     for i, amount in grocery_list.items():
-        name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i 
+        name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i
         print(f"Adding to list: {name}")
 
         description = ""
@@ -234,9 +232,7 @@ def create_grocery_list():
         try:
             service.tasks().insert(
                 tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
-                body={
-                    "title": f"{name} | {description}"
-                },
+                body={"title": f"{name} | {description}"},
             ).execute()
         except requests.exceptions.HTTPError as e:
             print(e)

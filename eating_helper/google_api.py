@@ -52,4 +52,3 @@ def clear_google_tasks(tasklist_id):
     while tasks["items"]:
         for task in tasks["items"]:
             service.tasks().delete(tasklist=tasklist_id, task=task["id"]).execute()
-
