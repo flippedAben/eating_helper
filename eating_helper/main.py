@@ -1,3 +1,4 @@
+from collections import defaultdict
 import requests
 import requests_cache
 import pprint
@@ -21,46 +22,46 @@ requests_cache.install_cache(
     backend="sqlite",
 )
 
+FOOD_GROUPS = {
+    "grains": 'Cereal Grains and Pasta',
+    "dairy": 'Dairy and Egg Products',
+    "beans": 'Legumes and Legume Products',
+    "fruit": 'Fruits and Fruit Juices',
+    "nuts": 'Nut and Seed Products',
+    "sauce": 'Soups, Sauces, and Gravies',
+    "chicken": 'Poultry Products',
+    "veg": 'Vegetables and Vegetable Products',
+    "bread": 'Baked Products',
+    "pantry": "Pantry",
+    "frozen": "Frozen",
+}
 
-def search_food_raw(query, foundation_only=True) -> dict:
-    url = f"{USDA_URL}/foods/search?query={query}&api_key={USDA_API_KEY}"
-    if foundation_only:
-        url += "&dataType=Foundation"
-    response = requests.get(url)
-    return response.json()
-
-
-def search_food(query, foundation_only=True) -> dict:
-    data = search_food_raw(query, foundation_only)
-    return data["foods"]
-
-
-def print_searched_foods(query, foundation_only=True):
-    foods = search_food(query, foundation_only)
-    for food in foods:
-        print(food["fdcId"])
-        print(food["description"])
-        print(food["foodCategory"])
-        nutrients = food["foodNutrients"]
-        relevant_nutrients = [
-            (
-                nutrient["nutrientNumber"],
-                nutrient["nutrientName"],
-                nutrient["value"],
-                nutrient["unitName"],
-            )
-            for nutrient in nutrients
-            if nutrient["nutrientName"] == "Protein"
-            or nutrient["nutrientName"]
-            in [
-                "Energy",
-                "Energy (Atwater General Factors)",
-            ]
-            and nutrient["unitName"] == "KCAL"
-        ]
-        print(relevant_nutrients)
-        print()
-
+# Some ID/names do not have groups already associated with them.
+REF_TO_GROUP = {
+    "black pepper": FOOD_GROUPS["pantry"],
+    "cacao powder": FOOD_GROUPS["pantry"],
+    "chili powder": FOOD_GROUPS["pantry"],
+    "cumin": FOOD_GROUPS["pantry"],
+    "garlic": FOOD_GROUPS["veg"],
+    "jalapeno": FOOD_GROUPS["veg"],
+    "lime": FOOD_GROUPS["fruit"],
+    "pico de gallo": FOOD_GROUPS["veg"],
+    "salt": FOOD_GROUPS["pantry"],
+    "soy sauce": FOOD_GROUPS["pantry"],
+    1859997: FOOD_GROUPS["beans"],
+    1932883: FOOD_GROUPS["dairy"],
+    2080001: FOOD_GROUPS["pantry"],
+    2113885: FOOD_GROUPS["grains"],
+    2272524: FOOD_GROUPS["frozen"],
+    2273669: FOOD_GROUPS["pantry"],
+    2343304: FOOD_GROUPS["bread"],
+    2344719: FOOD_GROUPS["fruit"],
+    386410: FOOD_GROUPS["grains"],
+    562738: FOOD_GROUPS["beans"],
+    577489: FOOD_GROUPS["pantry"],
+    595770: FOOD_GROUPS["pantry"],
+    981101: FOOD_GROUPS["grains"],
+}
 
 def get_foods_by_id(fdc_ids, abridged=False) -> List:
     result = []
@@ -202,6 +203,7 @@ def create_grocery_list():
 
     grocery_list = {}
     fdc_ids = []
+    for_taste_ingredients = []
     for recipe, specs in meal_plan.items():
         multiplier = specs["multiplier"]
         ingredients_in_grams = recipes[recipe]["ingredients"]["main"]
@@ -212,31 +214,63 @@ def create_grocery_list():
         other_ingredients = recipes[recipe]["ingredients"]["for_taste"]
         if other_ingredients:
             for i, amount in other_ingredients.items():
+                for_taste_ingredients.append(i)
                 if i in grocery_list:
                     grocery_list[i].extend([amount] * multiplier)
                 else:
                     grocery_list[i] = [amount] * multiplier
 
     fdc_id_to_info = map_fdc_ids_to_info(fdc_ids)
-    service = get_google_tasks_service()
-    for i, amount in grocery_list.items():
-        name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i
-        print(f"Adding to list: {name}")
-
-        description = ""
-        if isinstance(amount, int):
-            description = f"{amount} g"
+    groups = defaultdict(list)
+    ungrouped_ingredients = []
+    for i, info in fdc_id_to_info.items():
+        group = info["group"]
+        if group:
+            groups[group].append(i)
         else:
-            description = " + ".join(amount)
+            if i in REF_TO_GROUP:
+                group = REF_TO_GROUP[i]
+                groups[group].append(i)
+            else:
+                ungrouped_ingredients.append(i)
 
-        try:
-            service.tasks().insert(
-                tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
-                body={"title": f"{name} | {description}"},
-            ).execute()
-        except requests.exceptions.HTTPError as e:
-            print(e)
-            raise e
+    for name in for_taste_ingredients:
+        if name in REF_TO_GROUP:
+            group = REF_TO_GROUP[name]
+            groups[group].append(name)
+        else:
+            ungrouped_ingredients.append(name)
+
+    if ungrouped_ingredients:
+        for i in ungrouped_ingredients:
+            if isinstance(i, int):
+                name = fdc_id_to_info[i]["name"]
+                print(f'    {i}: FOOD_GROUPS["{name}"],')
+            else:
+                print(f'    "{i}": FOOD_GROUPS[""],')
+        raise Exception("Ungrouped ingredients")
+
+    service = get_google_tasks_service()
+    for group, fdc_ids in groups.items():
+        for i in fdc_ids:
+            name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i
+
+            amount = grocery_list[i]
+            description = ""
+            if isinstance(amount, int):
+                description = f"{amount} g"
+            else:
+                description = " + ".join(amount)
+
+            print(" | ".join([group, name, description]))
+            try:
+                service.tasks().insert(
+                    tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
+                    body={"title": f"{name} | {description} | {group}"},
+                ).execute()
+            except requests.exceptions.HTTPError as e:
+                print(e)
+                raise e
 
 
 def main():
@@ -244,4 +278,3 @@ def main():
     # create_weekly_meal_plan()
 
     create_grocery_list()
-    # clear_google_tasks(secrets.GOOGLE_TASKS_SHOPPING_LIST_ID)
