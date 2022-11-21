@@ -23,15 +23,15 @@ requests_cache.install_cache(
 )
 
 FOOD_GROUPS = {
-    "grains": 'Cereal Grains and Pasta',
-    "dairy": 'Dairy and Egg Products',
-    "beans": 'Legumes and Legume Products',
-    "fruit": 'Fruits and Fruit Juices',
-    "nuts": 'Nut and Seed Products',
-    "sauce": 'Soups, Sauces, and Gravies',
-    "chicken": 'Poultry Products',
-    "veg": 'Vegetables and Vegetable Products',
-    "bread": 'Baked Products',
+    "grains": "Cereal Grains and Pasta",
+    "dairy": "Dairy and Egg Products",
+    "beans": "Legumes and Legume Products",
+    "fruit": "Fruits and Fruit Juices",
+    "nuts": "Nut and Seed Products",
+    "sauce": "Soups, Sauces, and Gravies",
+    "chicken": "Poultry Products",
+    "veg": "Vegetables and Vegetable Products",
+    "bread": "Baked Products",
     "pantry": "Pantry",
     "frozen": "Frozen",
 }
@@ -62,6 +62,7 @@ REF_TO_GROUP = {
     595770: FOOD_GROUPS["pantry"],
     981101: FOOD_GROUPS["grains"],
 }
+
 
 def get_foods_by_id(fdc_ids, abridged=False) -> List:
     result = []
@@ -221,6 +222,26 @@ def create_grocery_list():
                     grocery_list[i] = [amount] * multiplier
 
     fdc_id_to_info = map_fdc_ids_to_info(fdc_ids)
+    groups = group_foods(fdc_id_to_info, for_taste_ingredients)
+
+    service = get_google_tasks_service()
+    for group, fdc_ids in groups.items():
+        for i in fdc_ids:
+            name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i
+
+            amount = grocery_list[i]
+            description = (
+                f"{amount} g" if isinstance(amount, int) else " + ".join(amount)
+            )
+
+            print(" | ".join([group, name, description]))
+            service.tasks().insert(
+                tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
+                body={"title": f"{name} | {description}"},
+            ).execute()
+
+
+def group_foods(fdc_id_to_info, for_taste_ingredients):
     groups = defaultdict(list)
     ungrouped_ingredients = []
     for i, info in fdc_id_to_info.items():
@@ -250,27 +271,7 @@ def create_grocery_list():
                 print(f'    "{i}": FOOD_GROUPS[""],')
         raise Exception("Ungrouped ingredients")
 
-    service = get_google_tasks_service()
-    for group, fdc_ids in groups.items():
-        for i in fdc_ids:
-            name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i
-
-            amount = grocery_list[i]
-            description = ""
-            if isinstance(amount, int):
-                description = f"{amount} g"
-            else:
-                description = " + ".join(amount)
-
-            print(" | ".join([group, name, description]))
-            try:
-                service.tasks().insert(
-                    tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
-                    body={"title": f"{name} | {description} | {group}"},
-                ).execute()
-            except requests.exceptions.HTTPError as e:
-                print(e)
-                raise e
+    return groups
 
 
 def main():
