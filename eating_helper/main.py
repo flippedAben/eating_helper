@@ -3,6 +3,7 @@ import requests
 import requests_cache
 import pprint
 import yaml
+import tqdm
 from typing import List
 
 import eating_helper.secrets as secrets
@@ -64,28 +65,16 @@ REF_TO_GROUP = {
 }
 
 
-def get_foods_by_id(fdc_ids, abridged=False) -> List:
-    result = []
+def get_foods_by_id(fdc_ids) -> List:
     # "foods" endpoint only works with abridged for some reason.
     # To get more details (like food category) you need to get food
-    # individually.
-    if abridged:
-        chunks = [
-            fdc_ids[i : i + USDA_API_MAX_CHUNK_SIZE]
-            for i in range(0, len(fdc_ids), USDA_API_MAX_CHUNK_SIZE)
-        ]
-
-        for ids in chunks:
-            ids_str = ",".join([str(i) for i in ids])
-            url = f"{USDA_URL}/foods?api_key={USDA_API_KEY}&format=abridged&fdcIds={ids_str}"
-            response = requests.get(url)
-            result.extend(response.json())
-    else:
-        for fdc_id in fdc_ids:
-            print(f"GET {fdc_id}")
-            url = f"{USDA_URL}/food/{fdc_id}?api_key={USDA_API_KEY}"
-            response = requests.get(url)
-            result.append(response.json())
+    # individually. So, use "food" endpoint (notice no s).
+    print("Getting foods by id...")
+    result = []
+    for fdc_id in tqdm.tqdm(fdc_ids):
+        url = f"{USDA_URL}/food/{fdc_id}?api_key={USDA_API_KEY}"
+        response = requests.get(url)
+        result.append(response.json())
 
     return result
 
@@ -239,6 +228,7 @@ def create_grocery_list():
                 tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
                 body={"title": f"{name} | {description}"},
             ).execute()
+        break
 
 
 def group_foods(fdc_id_to_info, for_taste_ingredients):

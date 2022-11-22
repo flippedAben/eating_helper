@@ -12,6 +12,7 @@ google-api-python-client = "^2.66.0"
 google-auth-httplib2 = "^0.1.0"
 google-auth-oauthlib = "^0.7.1"
 requests-cache = "^0.9.7"
+tqdm = "^4.64.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.10.0"
