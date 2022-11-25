@@ -15,9 +15,6 @@ USDA_URL = "https://api.nal.usda.gov/fdc/v1"
 USDA_API_KEY = secrets.USDA_API_KEY
 USDA_API_MAX_CHUNK_SIZE = 20
 
-# Assumes you have my system of Syncthing + Obsidian setup
-OBSIDIAN_PATH = "/home/ben/syncthing/Obsidian Vault/main"
-
 requests_cache.install_cache(
     cache_name="usda_cache",
     backend="sqlite",
@@ -184,11 +181,25 @@ def create_weekly_meal_plan():
         for i in days_to_eat_on:
             meals_per_day[i].append(meal_name)
 
-    with open(OBSIDIAN_PATH + "/Meal plan.md", "w") as f:
-        for i, meals in enumerate(meals_per_day):
-            f.write(f"# Day {i}\n")
-            for meal_name in meals:
-                f.write(f"- [ ] {meal_name}\n")
+    service = get_google_tasks_service()
+    response = service.tasks().list(
+        tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID
+    ).execute()
+
+    day_index_to_task = {}
+    for task in response["items"]:
+        day_index = int(task["title"])
+        assert 0 <= day_index < 7
+        day_index_to_task[day_index] = task
+
+    for i, meals in enumerate(meals_per_day):
+        print(f"Adding meals to day {i}")
+        for meal_name in meals:
+            service.tasks().insert(
+                tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID,
+                parent=day_index_to_task[i]["id"],
+                body={ "title": meal_name },
+            ).execute()
 
 
 def schedule_days_to_eat_meal_on(meal):
@@ -283,7 +294,16 @@ def group_foods(fdc_id_to_info, for_taste_ingredients):
 
 
 def main():
-    print("test")
+    service = get_google_tasks_service()
+    response = service.tasks().list(tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID).execute()
+
+    day_index_to_task = {}
+    for task in response["items"]:
+        day_index = int(task["title"])
+        assert 0 <= day_index < 7
+        day_index_to_task[day_index] = task
+
+    pprint.pprint(day_index_to_task)
 
 
 def view():
