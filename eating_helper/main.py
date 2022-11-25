@@ -98,20 +98,29 @@ def get_food_nutrients_by_id(fdc_ids):
         nutrients = food["foodNutrients"]
         relevant_nutrients = {}
         for nutrient in nutrients:
-            if nutrient["name"] == "Protein":
+            if nutrient["nutrient"]["name"] == "Protein":
                 relevant_nutrients["protein"] = (
                     nutrient["amount"],
-                    nutrient["unitName"],
+                    nutrient["nutrient"]["unitName"],
                 )
             elif (
-                nutrient["name"]
+                nutrient["nutrient"]["name"]
                 in [
                     "Energy",
                     "Energy (Atwater General Factors)",
                 ]
-                and nutrient["unitName"] == "KCAL"
+                and nutrient["nutrient"]["unitName"] == "kcal"
             ):
-                relevant_nutrients["kcal"] = (nutrient["amount"], nutrient["unitName"])
+                relevant_nutrients["kcal"] = (nutrient["amount"], nutrient["nutrient"]["unitName"])
+        food_name = food["description"]
+        if "protein" not in relevant_nutrients:
+            pprint.pprint(nutrients)
+            print(f"Protein not found in {food_name}")
+            exit(1)
+        if "kcal" not in relevant_nutrients:
+            pprint.pprint(nutrients)
+            print(f"kcal not found in {food_name}")
+            exit(1)
         id_to_nutrients[food["fdcId"]] = relevant_nutrients
     return id_to_nutrients
 
@@ -125,14 +134,14 @@ def print_weekly_meal_plan_stats():
 
     kcal_per_day = [0] * DAYS_PER_WEEK
     protein_per_day = [0] * DAYS_PER_WEEK
-    for meal in meal_plan:
-        servings = recipes[meal]["servings"]
-        multi = meal_plan[meal]["multiplier"]
-        print(meal, f"({servings * multi})")
-        caloric_ingredients = recipes[meal]["ingredients"]["main"]
+    for meal_name in meal_plan:
+        servings = recipes[meal_name]["servings"]
+        multi = meal_plan[meal_name]["multiplier"]
+        print(meal_name, f"({servings * multi})")
+        caloric_ingredients = recipes[meal_name]["ingredients"]["main"]
         id_to_nutrients = get_food_nutrients_by_id(caloric_ingredients.keys())
 
-        assert all([x["kcal"][1] == "KCAL" for x in id_to_nutrients.values()])
+        assert all([x["kcal"][1] == "kcal" for x in id_to_nutrients.values()])
         single_meal_kcal = 0
         for fdc_id in id_to_nutrients:
             kcal_per_100_grams = id_to_nutrients[fdc_id]["kcal"][0]
@@ -140,7 +149,7 @@ def print_weekly_meal_plan_stats():
         single_meal_kcal /= servings
         print("kcal per serving:", round(single_meal_kcal))
 
-        assert all([x["protein"][1] == "G" for x in id_to_nutrients.values()])
+        assert all([x["protein"][1] == "g" for x in id_to_nutrients.values()])
         single_meal_protein = 0
         for fdc_id in id_to_nutrients:
             protein_per_100_grams = id_to_nutrients[fdc_id]["protein"][0]
@@ -149,6 +158,11 @@ def print_weekly_meal_plan_stats():
             )
         single_meal_protein /= servings
         print("prot per serving:", round(single_meal_protein))
+
+        days_to_eat_on = schedule_days_to_eat_meal_on(meal_plan[meal_name])
+        for i in days_to_eat_on:
+            kcal_per_day[i] += single_meal_kcal
+            protein_per_day[i] += single_meal_protein
 
         print()
 
@@ -165,23 +179,28 @@ def create_weekly_meal_plan():
         meal_plan = yaml.safe_load(f)
 
     meals_per_day = [[] for _ in range(DAYS_PER_WEEK)]
-    for meal in meal_plan:
-        eating_schedule = meal_plan[meal]["eat on"]
-        days_to_eat_on = []
-        for term in eating_schedule:
-            if term == "daily":
-                days_to_eat_on.extend(list(range(DAYS_PER_WEEK)))
-            else:
-                days_to_eat_on.append(term)
-
+    for meal_name in meal_plan:
+        days_to_eat_on = schedule_days_to_eat_meal_on(meal_plan[meal_name])
         for i in days_to_eat_on:
-            meals_per_day[i].append(meal)
+            meals_per_day[i].append(meal_name)
 
     with open(OBSIDIAN_PATH + "/Meal plan.md", "w") as f:
         for i, meals in enumerate(meals_per_day):
             f.write(f"# Day {i}\n")
-            for meal in meals:
-                f.write(f"- [ ] {meal}\n")
+            for meal_name in meals:
+                f.write(f"- [ ] {meal_name}\n")
+
+
+def schedule_days_to_eat_meal_on(meal):
+    eating_schedule = meal["eat on"]
+    days_to_eat_on = []
+    for term in eating_schedule:
+        if term == "daily":
+            days_to_eat_on.extend(list(range(DAYS_PER_WEEK)))
+        else:
+            days_to_eat_on.append(term)
+
+    return days_to_eat_on
 
 
 def create_grocery_list():
@@ -228,7 +247,6 @@ def create_grocery_list():
                 tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
                 body={"title": f"{name} | {description}"},
             ).execute()
-        break
 
 
 def group_foods(fdc_id_to_info, for_taste_ingredients):
@@ -265,7 +283,13 @@ def group_foods(fdc_id_to_info, for_taste_ingredients):
 
 
 def main():
-    # print_weekly_meal_plan_stats()
-    # create_weekly_meal_plan()
+    print("test")
 
+
+def view():
+    print_weekly_meal_plan_stats()
+
+
+def make():
+    create_weekly_meal_plan()
     create_grocery_list()
