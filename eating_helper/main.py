@@ -234,10 +234,10 @@ def create_grocery_list():
         other_ingredients = recipes[recipe]["ingredients"]["for_taste"]
         if other_ingredients:
             for i, amount in other_ingredients.items():
-                for_taste_ingredients.append(i)
                 if i in grocery_list:
                     grocery_list[i].extend([amount] * multiplier)
                 else:
+                    for_taste_ingredients.append(i)
                     grocery_list[i] = [amount] * multiplier
 
     fdc_id_to_info = map_fdc_ids_to_info(fdc_ids)
@@ -245,6 +245,16 @@ def create_grocery_list():
 
     service = get_google_tasks_service()
     for group, fdc_ids in groups.items():
+        if group != "Pantry":
+            continue
+
+        # Parent task that contains food subtasks.
+        parent_task = service.tasks().insert(
+            tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
+            body={"title": group},
+        ).execute()
+        print(f"Creating parent task: {group}")
+
         for i in fdc_ids:
             name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i
 
@@ -253,10 +263,11 @@ def create_grocery_list():
                 f"{amount} g" if isinstance(amount, int) else " + ".join(amount)
             )
 
-            print(" | ".join([group, name, description]))
+            print(" " * 4, " | ".join([name, description]))
             service.tasks().insert(
                 tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
                 body={"title": f"{name} | {description}"},
+                parent=parent_task["id"],
             ).execute()
 
 
@@ -294,16 +305,7 @@ def group_foods(fdc_id_to_info, for_taste_ingredients):
 
 
 def main():
-    service = get_google_tasks_service()
-    response = service.tasks().list(tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID).execute()
-
-    day_index_to_task = {}
-    for task in response["items"]:
-        day_index = int(task["title"])
-        assert 0 <= day_index < 7
-        day_index_to_task[day_index] = task
-
-    pprint.pprint(day_index_to_task)
+    create_grocery_list()
 
 
 def view():
