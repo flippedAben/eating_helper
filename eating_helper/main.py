@@ -108,7 +108,10 @@ def get_food_nutrients_by_id(fdc_ids):
                 ]
                 and nutrient["nutrient"]["unitName"] == "kcal"
             ):
-                relevant_nutrients["kcal"] = (nutrient["amount"], nutrient["nutrient"]["unitName"])
+                relevant_nutrients["kcal"] = (
+                    nutrient["amount"],
+                    nutrient["nutrient"]["unitName"],
+                )
         food_name = food["description"]
         if "protein" not in relevant_nutrients:
             pprint.pprint(nutrients)
@@ -182,9 +185,9 @@ def create_weekly_meal_plan():
             meals_per_day[i].append(meal_name)
 
     service = get_google_tasks_service()
-    response = service.tasks().list(
-        tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID
-    ).execute()
+    response = (
+        service.tasks().list(tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID).execute()
+    )
 
     day_index_to_task = {}
     for task in response["items"]:
@@ -198,7 +201,7 @@ def create_weekly_meal_plan():
             service.tasks().insert(
                 tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID,
                 parent=day_index_to_task[i]["id"],
-                body={ "title": meal_name },
+                body={"title": meal_name},
             ).execute()
 
 
@@ -245,23 +248,33 @@ def create_grocery_list():
 
     service = get_google_tasks_service()
     for group, fdc_ids in groups.items():
-        if group != "Pantry":
-            continue
-
         # Parent task that contains food subtasks.
-        parent_task = service.tasks().insert(
-            tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
-            body={"title": group},
-        ).execute()
+        parent_task = (
+            service.tasks()
+            .insert(
+                tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
+                body={"title": group},
+            )
+            .execute()
+        )
         print(f"Creating parent task: {group}")
 
         for i in fdc_ids:
             name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i
 
             amount = grocery_list[i]
-            description = (
-                f"{amount} g" if isinstance(amount, int) else " + ".join(amount)
-            )
+            description = None
+            if isinstance(amount, int):
+                description = f"{amount} g"
+            else:
+                unit_to_value = defaultdict(int)
+                for subamount in amount:
+                    value, unit = subamount.split(" ")
+                    value = int(value)
+                    unit_to_value[unit] += value
+                description = " + ".join(
+                    f"{value} {unit}" for unit, value in unit_to_value.items()
+                )
 
             print(" " * 4, " | ".join([name, description]))
             service.tasks().insert(
