@@ -174,7 +174,7 @@ def print_weekly_meal_plan_stats():
     print("prot, weekly total:", round(sum(protein_per_day)))
 
 
-def create_weekly_meal_plan():
+def create_weekly_meal_plan(fake=False):
     with open("./weekly_meal_plan.yaml", "r") as f:
         meal_plan = yaml.safe_load(f)
 
@@ -184,6 +184,11 @@ def create_weekly_meal_plan():
         for i in days_to_eat_on:
             meals_per_day[i].append(meal_name)
 
+    if fake:
+        for meals in meals_per_day:
+            print(meals)
+        return
+
     service = get_google_tasks_service()
     response = (
         service.tasks().list(tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID).execute()
@@ -191,6 +196,7 @@ def create_weekly_meal_plan():
 
     day_index_to_task = {}
     for task in response["items"]:
+        print(task)
         day_index = int(task["title"])
         assert 0 <= day_index < 7
         day_index_to_task[day_index] = task
@@ -317,14 +323,11 @@ def group_foods(fdc_id_to_info, for_taste_ingredients):
     return groups
 
 
-def main():
+def grocery():
     create_grocery_list()
 
 
 def view():
     print_weekly_meal_plan_stats()
+    create_weekly_meal_plan(fake=True)
 
-
-def make():
-    create_weekly_meal_plan()
-    create_grocery_list()

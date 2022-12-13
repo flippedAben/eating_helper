@@ -22,8 +22,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-main = "eating_helper.main:main"
 view = "eating_helper.main:view"
+groc = "eating_helper.main:grocery"
 plan = "eating_helper.main:create_weekly_meal_plan"
-make = "eating_helper.main:make"
 
