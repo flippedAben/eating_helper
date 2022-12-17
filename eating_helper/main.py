@@ -46,6 +46,8 @@ REF_TO_GROUP = {
     "pico de gallo": FOOD_GROUPS["veg"],
     "salt": FOOD_GROUPS["pantry"],
     "soy sauce": FOOD_GROUPS["pantry"],
+    "vinegar": FOOD_GROUPS["pantry"],
+    "sambal oelek": FOOD_GROUPS["pantry"],
     1859997: FOOD_GROUPS["beans"],
     1932883: FOOD_GROUPS["dairy"],
     2080001: FOOD_GROUPS["pantry"],
@@ -59,6 +61,8 @@ REF_TO_GROUP = {
     577489: FOOD_GROUPS["pantry"],
     595770: FOOD_GROUPS["pantry"],
     981101: FOOD_GROUPS["grains"],
+    2099245: FOOD_GROUPS["chicken"],
+    2024576: FOOD_GROUPS["pantry"],
 }
 
 
