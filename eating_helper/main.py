@@ -42,12 +42,14 @@ REF_TO_GROUP = {
     "cumin": FOOD_GROUPS["pantry"],
     "garlic": FOOD_GROUPS["veg"],
     "jalapeno": FOOD_GROUPS["veg"],
+    "poblano": FOOD_GROUPS["veg"],
     "lime": FOOD_GROUPS["fruit"],
     "pico de gallo": FOOD_GROUPS["veg"],
     "salt": FOOD_GROUPS["pantry"],
     "soy sauce": FOOD_GROUPS["pantry"],
     "vinegar": FOOD_GROUPS["pantry"],
     "sambal oelek": FOOD_GROUPS["pantry"],
+    "chipotle in adobo sauce": FOOD_GROUPS["pantry"],
     1859997: FOOD_GROUPS["beans"],
     1932883: FOOD_GROUPS["dairy"],
     2080001: FOOD_GROUPS["pantry"],
@@ -170,29 +172,19 @@ def print_weekly_meal_plan_stats():
 
         print()
 
-    print("kcal per day:", [round(x) for x in kcal_per_day])
-    print("prot per day:", [round(x) for x in protein_per_day])
+    meals_per_day = get_meals_per_day(meal_plan)
+    for i, (kcal, prot, meals) in enumerate(zip(kcal_per_day, protein_per_day, meals_per_day)):
+        kcal = round(kcal)
+        prot = round(prot)
+        print(i, str(kcal).ljust(8, " "), str(prot).ljust(8, " "), meals)
+
     print()
 
     print("kcal, weekly total:", round(sum(kcal_per_day)))
     print("prot, weekly total:", round(sum(protein_per_day)))
 
 
-def create_weekly_meal_plan(fake=False):
-    with open("./weekly_meal_plan.yaml", "r") as f:
-        meal_plan = yaml.safe_load(f)
-
-    meals_per_day = [[] for _ in range(DAYS_PER_WEEK)]
-    for meal_name in meal_plan:
-        days_to_eat_on = schedule_days_to_eat_meal_on(meal_plan[meal_name])
-        for i in days_to_eat_on:
-            meals_per_day[i].append(meal_name)
-
-    if fake:
-        for meals in meals_per_day:
-            print(meals)
-        return
-
+def create_weekly_meal_plan():
     service = get_google_tasks_service()
     response = (
         service.tasks().list(tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID).execute()
@@ -205,6 +197,10 @@ def create_weekly_meal_plan(fake=False):
         assert 0 <= day_index < 7
         day_index_to_task[day_index] = task
 
+    with open("./weekly_meal_plan.yaml", "r") as f:
+        meal_plan = yaml.safe_load(f)
+
+    meals_per_day = get_meals_per_day(meal_plan)
     for i, meals in enumerate(meals_per_day):
         print(f"Adding meals to day {i}")
         for meal_name in meals:
@@ -213,6 +209,15 @@ def create_weekly_meal_plan(fake=False):
                 parent=day_index_to_task[i]["id"],
                 body={"title": meal_name},
             ).execute()
+
+
+def get_meals_per_day(meal_plan):
+    meals_per_day = [[] for _ in range(DAYS_PER_WEEK)]
+    for meal_name in meal_plan:
+        days_to_eat_on = schedule_days_to_eat_meal_on(meal_plan[meal_name])
+        for i in days_to_eat_on:
+            meals_per_day[i].append(meal_name)
+    return meals_per_day
 
 
 def schedule_days_to_eat_meal_on(meal):
@@ -227,7 +232,7 @@ def schedule_days_to_eat_meal_on(meal):
     return days_to_eat_on
 
 
-def create_grocery_list():
+def create_grocery_list(is_dry_run=False):
     with open("./recipes.yaml", "r") as f:
         recipes = yaml.safe_load(f)
 
@@ -256,18 +261,9 @@ def create_grocery_list():
     fdc_id_to_info = map_fdc_ids_to_info(fdc_ids)
     groups = group_foods(fdc_id_to_info, for_taste_ingredients)
 
-    service = get_google_tasks_service()
+    actual_groups = {}
     for group, fdc_ids in groups.items():
-        # Parent task that contains food subtasks.
-        parent_task = (
-            service.tasks()
-            .insert(
-                tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
-                body={"title": group},
-            )
-            .execute()
-        )
-        print(f"Creating parent task: {group}")
+        actual_groups[group] = []
 
         for i in fdc_ids:
             name = fdc_id_to_info[i]["name"] if isinstance(i, int) else i
@@ -286,6 +282,23 @@ def create_grocery_list():
                     f"{value} {unit}" for unit, value in unit_to_value.items()
                 )
 
+            actual_groups[group].append((name, description))
+
+    if is_dry_run:
+        return
+
+    service = get_google_tasks_service()
+    for group, foods in actual_groups.items():
+        print(f"Creating parent task to contain food subtasks: {group}")
+        parent_task = (
+            service.tasks()
+            .insert(
+                tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
+                body={"title": group},
+            ).execute()
+        )
+
+        for name, description in foods:
             print(" " * 4, " | ".join([name, description]))
             service.tasks().insert(
                 tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
@@ -333,5 +346,4 @@ def grocery():
 
 def view():
     print_weekly_meal_plan_stats()
-    create_weekly_meal_plan(fake=True)
 
