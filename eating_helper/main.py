@@ -32,10 +32,14 @@ FOOD_GROUPS = {
     "bread": "Baked Products",
     "pantry": "Pantry",
     "frozen": "Frozen",
+    "indian": "Indian store",
 }
 
 # Some ID/names do not have groups already associated with them.
 REF_TO_GROUP = {
+    "paprika": FOOD_GROUPS["pantry"],
+    "onion_powder": FOOD_GROUPS["pantry"],
+    "garlic_powder": FOOD_GROUPS["pantry"],
     "black pepper": FOOD_GROUPS["pantry"],
     "cacao powder": FOOD_GROUPS["pantry"],
     "chili powder": FOOD_GROUPS["pantry"],
@@ -44,12 +48,16 @@ REF_TO_GROUP = {
     "jalapeno": FOOD_GROUPS["veg"],
     "poblano": FOOD_GROUPS["veg"],
     "lime": FOOD_GROUPS["fruit"],
+    "salsa": FOOD_GROUPS["veg"],
     "pico de gallo": FOOD_GROUPS["veg"],
     "salt": FOOD_GROUPS["pantry"],
     "soy sauce": FOOD_GROUPS["pantry"],
     "vinegar": FOOD_GROUPS["pantry"],
     "sambal oelek": FOOD_GROUPS["pantry"],
     "chipotle in adobo sauce": FOOD_GROUPS["pantry"],
+    "water": FOOD_GROUPS["pantry"],
+    "white vinegar": FOOD_GROUPS["pantry"],
+    "red onion": FOOD_GROUPS["veg"],
     1859997: FOOD_GROUPS["beans"],
     1932883: FOOD_GROUPS["dairy"],
     2080001: FOOD_GROUPS["pantry"],
@@ -65,6 +73,10 @@ REF_TO_GROUP = {
     981101: FOOD_GROUPS["grains"],
     2099245: FOOD_GROUPS["chicken"],
     2024576: FOOD_GROUPS["pantry"],
+    2345725: FOOD_GROUPS["pantry"],
+    "indian_spices": FOOD_GROUPS["indian"],
+    "long_green_chili": FOOD_GROUPS["indian"],
+    "ginger_garlic_paste": FOOD_GROUPS["indian"],
 }
 
 
@@ -289,7 +301,7 @@ def create_grocery_list(is_dry_run=False):
 
     service = get_google_tasks_service()
     for group, foods in actual_groups.items():
-        print(f"Creating parent task to contain food subtasks: {group}")
+        print(group)
         parent_task = (
             service.tasks()
             .insert(

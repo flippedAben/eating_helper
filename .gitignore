@@ -3,5 +3,5 @@
 *.json
 *.sqlite
 secrets.py
-recipes.yaml
+recipes*.yaml
 weekly_meal_plan.yaml
