@@ -38,8 +38,9 @@ FOOD_GROUPS = {
 # Some ID/names do not have groups already associated with them.
 REF_TO_GROUP = {
     "paprika": FOOD_GROUPS["pantry"],
-    "onion_powder": FOOD_GROUPS["pantry"],
-    "garlic_powder": FOOD_GROUPS["pantry"],
+    "green onion": FOOD_GROUPS["veg"],
+    "onion powder": FOOD_GROUPS["pantry"],
+    "garlic powder": FOOD_GROUPS["pantry"],
     "black pepper": FOOD_GROUPS["pantry"],
     "cacao powder": FOOD_GROUPS["pantry"],
     "chili powder": FOOD_GROUPS["pantry"],
@@ -58,6 +59,10 @@ REF_TO_GROUP = {
     "water": FOOD_GROUPS["pantry"],
     "white vinegar": FOOD_GROUPS["pantry"],
     "red onion": FOOD_GROUPS["veg"],
+    "cilantro": FOOD_GROUPS["veg"],
+    "indian spices": FOOD_GROUPS["indian"],
+    "long green chili": FOOD_GROUPS["indian"],
+    "ginger garlic paste": FOOD_GROUPS["indian"],
     1859997: FOOD_GROUPS["beans"],
     1932883: FOOD_GROUPS["dairy"],
     2080001: FOOD_GROUPS["pantry"],
@@ -74,9 +79,6 @@ REF_TO_GROUP = {
     2099245: FOOD_GROUPS["chicken"],
     2024576: FOOD_GROUPS["pantry"],
     2345725: FOOD_GROUPS["pantry"],
-    "indian_spices": FOOD_GROUPS["indian"],
-    "long_green_chili": FOOD_GROUPS["indian"],
-    "ginger_garlic_paste": FOOD_GROUPS["indian"],
 }
 
 
@@ -193,6 +195,7 @@ def print_weekly_meal_plan_stats():
     print()
 
     print("kcal, weekly total:", round(sum(kcal_per_day)))
+    print("kcal, daily avg:   ", round(sum(kcal_per_day)/7))
     print("prot, weekly total:", round(sum(protein_per_day)))
 
 
