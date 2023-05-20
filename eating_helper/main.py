@@ -37,6 +37,7 @@ FOOD_GROUPS = {
 
 # Some ID/names do not have groups already associated with them.
 REF_TO_GROUP = {
+    "spinach": FOOD_GROUPS["veg"],
     "paprika": FOOD_GROUPS["pantry"],
     "green onion": FOOD_GROUPS["veg"],
     "onion powder": FOOD_GROUPS["pantry"],
