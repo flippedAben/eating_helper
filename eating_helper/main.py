@@ -33,10 +33,15 @@ FOOD_GROUPS = {
     "pantry": "Pantry",
     "frozen": "Frozen",
     "indian": "Indian store",
+    "seafood": "Seafood",
 }
 
 # Some ID/names do not have groups already associated with them.
 REF_TO_GROUP = {
+    2341777: FOOD_GROUPS["seafood"],
+    "shallot": FOOD_GROUPS["veg"],
+    "parsley": FOOD_GROUPS["veg"],
+    "cajun": FOOD_GROUPS["pantry"],
     "spinach": FOOD_GROUPS["veg"],
     "paprika": FOOD_GROUPS["pantry"],
     "green onion": FOOD_GROUPS["veg"],
