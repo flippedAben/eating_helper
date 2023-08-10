@@ -1,14 +1,17 @@
-from collections import defaultdict
-import requests
-import requests_cache
 import pprint
-import yaml
-import tqdm
+from collections import defaultdict
 from typing import List
 
+import requests
+import requests_cache
+import tqdm
+import yaml
+
 import eating_helper.secrets as secrets
-from eating_helper.google_api import get_google_tasks_service
-from eating_helper.google_api import clear_google_tasks
+from eating_helper.google_api.tasks import (
+    clear_google_tasks,
+    get_google_tasks_service,
+)
 
 DAYS_PER_WEEK = 7
 USDA_URL = "https://api.nal.usda.gov/fdc/v1"
@@ -206,7 +209,9 @@ def print_weekly_meal_plan_stats():
         print()
 
     meals_per_day = get_meals_per_day(meal_plan)
-    for i, (kcal, prot, meals) in enumerate(zip(kcal_per_day, protein_per_day, meals_per_day)):
+    for i, (kcal, prot, meals) in enumerate(
+        zip(kcal_per_day, protein_per_day, meals_per_day)
+    ):
         kcal = round(kcal)
         prot = round(prot)
         print(i, str(kcal).ljust(8, " "), str(prot).ljust(8, " "), meals)
@@ -214,35 +219,8 @@ def print_weekly_meal_plan_stats():
     print()
 
     print("kcal, weekly total:", round(sum(kcal_per_day)))
-    print("kcal, daily avg:   ", round(sum(kcal_per_day)/7))
+    print("kcal, daily avg:   ", round(sum(kcal_per_day) / 7))
     print("prot, weekly total:", round(sum(protein_per_day)))
-
-
-def create_weekly_meal_plan():
-    service = get_google_tasks_service()
-    response = (
-        service.tasks().list(tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID).execute()
-    )
-
-    day_index_to_task = {}
-    for task in response["items"]:
-        print(task)
-        day_index = int(task["title"])
-        assert 0 <= day_index < 7
-        day_index_to_task[day_index] = task
-
-    with open("./weekly_meal_plan.yaml", "r") as f:
-        meal_plan = yaml.safe_load(f)
-
-    meals_per_day = get_meals_per_day(meal_plan)
-    for i, meals in enumerate(meals_per_day):
-        print(f"Adding meals to day {i}")
-        for meal_name in meals:
-            service.tasks().insert(
-                tasklist=secrets.GOOGLE_TASKS_MEAL_PLAN_ID,
-                parent=day_index_to_task[i]["id"],
-                body={"title": meal_name},
-            ).execute()
 
 
 def get_meals_per_day(meal_plan):
@@ -329,7 +307,8 @@ def create_grocery_list(is_dry_run=False):
             .insert(
                 tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
                 body={"title": group},
-            ).execute()
+            )
+            .execute()
         )
 
         for name, description in foods:
@@ -380,4 +359,3 @@ def grocery():
 
 def view():
     print_weekly_meal_plan_stats()
-
