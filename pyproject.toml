@@ -14,6 +14,7 @@ google-auth-oauthlib = "^0.7.1"
 requests-cache = "^0.9.7"
 tqdm = "^4.64.1"
 isort = "^5.12.0"
+flake8 = "^6.1.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.10.0"
@@ -31,5 +32,5 @@ test_google_tasks_api = "eating_helper.google_api:get_google_tasks_service"
 multi_line_output = 3
 include_trailing_comma = true
 force_grid_wrap = 0
-line_length = 79
+line_length = 88
 profile = "black"

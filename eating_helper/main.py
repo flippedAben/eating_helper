@@ -8,10 +8,7 @@ import tqdm
 import yaml
 
 import eating_helper.secrets as secrets
-from eating_helper.google_api.tasks import (
-    clear_google_tasks,
-    get_google_tasks_service,
-)
+from eating_helper.google_api.tasks import get_google_tasks_service
 
 DAYS_PER_WEEK = 7
 USDA_URL = "https://api.nal.usda.gov/fdc/v1"
