@@ -1,7 +1,7 @@
+*.pickle
 *.pyc
 *.pyo
 *.json
 *.sqlite
+*.yaml
 secrets.py
-recipes*.yaml
-weekly_meal_plan.yaml

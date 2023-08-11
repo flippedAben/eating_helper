@@ -164,6 +164,16 @@ def get_food_nutrients_by_id(fdc_ids):
     return id_to_nutrients
 
 
+def get_meal_plan_stats():
+    with open("./weekly_meal_calendar.yaml", "r") as f:
+        meal_plan = yaml.safe_load(f)
+
+    with open("./recipes.yaml", "r") as f:
+        recipes = yaml.safe_load(f)
+
+    print(meal_plan)
+
+
 def print_weekly_meal_plan_stats():
     with open("./weekly_meal_plan.yaml", "r") as f:
         meal_plan = yaml.safe_load(f)
@@ -355,4 +365,5 @@ def grocery():
 
 
 def view():
-    print_weekly_meal_plan_stats()
+    # print_weekly_meal_plan_stats()
+    get_meal_plan_stats()
