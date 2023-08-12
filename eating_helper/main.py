@@ -2,23 +2,15 @@ import pprint
 from collections import defaultdict
 from typing import List
 
-import requests
-import requests_cache
-import tqdm
 import yaml
 
 import eating_helper.secrets as secrets
 from eating_helper.google_api.tasks import get_google_tasks_service
 
-DAYS_PER_WEEK = 7
-USDA_URL = "https://api.nal.usda.gov/fdc/v1"
-USDA_API_KEY = secrets.USDA_API_KEY
-USDA_API_MAX_CHUNK_SIZE = 20
+from .recipes import get_recipes
 
-requests_cache.install_cache(
-    cache_name="usda_cache",
-    backend="sqlite",
-)
+DAYS_PER_WEEK = 7
+
 
 FOOD_GROUPS = {
     "grains": "Cereal Grains and Pasta",
@@ -101,85 +93,15 @@ REF_TO_GROUP = {
 }
 
 
-def get_foods_by_id(fdc_ids) -> List:
-    # "foods" endpoint only works with abridged for some reason.
-    # To get more details (like food category) you need to get food
-    # individually. So, use "food" endpoint (notice no s).
-    print("Getting foods by id...")
-    result = []
-    for fdc_id in tqdm.tqdm(fdc_ids):
-        url = f"{USDA_URL}/food/{fdc_id}?api_key={USDA_API_KEY}"
-        response = requests.get(url)
-        result.append(response.json())
-
-    return result
-
-
-def map_fdc_ids_to_info(fdc_ids) -> dict:
-    foods = get_foods_by_id(fdc_ids)
-    m = {}
-    for food in foods:
-        m[food["fdcId"]] = {
-            "name": food["description"].capitalize(),
-            "group": food.get("foodCategory", {}).get("description", ""),
-        }
-
-    return m
-
-
-def get_food_nutrients_by_id(fdc_ids):
-    foods = get_foods_by_id(fdc_ids)
-    id_to_nutrients = {}
-    for food in foods:
-        nutrients = food["foodNutrients"]
-        relevant_nutrients = {}
-        for nutrient in nutrients:
-            if nutrient["nutrient"]["name"] == "Protein":
-                relevant_nutrients["protein"] = (
-                    nutrient["amount"],
-                    nutrient["nutrient"]["unitName"],
-                )
-            elif (
-                nutrient["nutrient"]["name"]
-                in [
-                    "Energy",
-                    "Energy (Atwater General Factors)",
-                ]
-                and nutrient["nutrient"]["unitName"] == "kcal"
-            ):
-                relevant_nutrients["kcal"] = (
-                    nutrient["amount"],
-                    nutrient["nutrient"]["unitName"],
-                )
-        food_name = food["description"]
-        if "protein" not in relevant_nutrients:
-            pprint.pprint(nutrients)
-            print(f"Protein not found in {food_name}")
-            exit(1)
-        if "kcal" not in relevant_nutrients:
-            pprint.pprint(nutrients)
-            print(f"kcal not found in {food_name}")
-            exit(1)
-        id_to_nutrients[food["fdcId"]] = relevant_nutrients
-    return id_to_nutrients
-
-
-def get_meal_plan_stats():
+def print_weekly_meal_plan_stats():
     with open("./weekly_meal_calendar.yaml", "r") as f:
         meal_plan = yaml.safe_load(f)
 
-    with open("./recipes.yaml", "r") as f:
-        recipes = yaml.safe_load(f)
-
-    print(meal_plan)
-
-
-def print_weekly_meal_plan_stats():
-    with open("./weekly_meal_plan.yaml", "r") as f:
-        meal_plan = yaml.safe_load(f)
-
-    with open("./recipes.yaml", "r") as f:
-        recipes = yaml.safe_load(f)
+    recipes = get_recipes()
+    for recipe in recipes:
+        print(recipe.name)
+        print(recipe.nutrition)
+    exit()
 
     kcal_per_day = [0] * DAYS_PER_WEEK
     protein_per_day = [0] * DAYS_PER_WEEK
@@ -228,27 +150,6 @@ def print_weekly_meal_plan_stats():
     print("kcal, weekly total:", round(sum(kcal_per_day)))
     print("kcal, daily avg:   ", round(sum(kcal_per_day) / 7))
     print("prot, weekly total:", round(sum(protein_per_day)))
-
-
-def get_meals_per_day(meal_plan):
-    meals_per_day = [[] for _ in range(DAYS_PER_WEEK)]
-    for meal_name in meal_plan:
-        days_to_eat_on = schedule_days_to_eat_meal_on(meal_plan[meal_name])
-        for i in days_to_eat_on:
-            meals_per_day[i].append(meal_name)
-    return meals_per_day
-
-
-def schedule_days_to_eat_meal_on(meal):
-    eating_schedule = meal["eat on"]
-    days_to_eat_on = []
-    for term in eating_schedule:
-        if term == "daily":
-            days_to_eat_on.extend(list(range(DAYS_PER_WEEK)))
-        else:
-            days_to_eat_on.append(term)
-
-    return days_to_eat_on
 
 
 def create_grocery_list(is_dry_run=False):
@@ -365,11 +266,4 @@ def grocery():
 
 
 def view():
-    # print_weekly_meal_plan_stats()
-    get_meal_plan_stats()
-
-    from pprint import pprint
-
-    from .data.recipe import get_recipes
-
-    pprint(get_recipes())
+    print_weekly_meal_plan_stats()

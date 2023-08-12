@@ -1,9 +1,11 @@
+from functools import cached_property
 from typing import List
 
 from pydantic import BaseModel
 from yaml import safe_load
 
-from ..secrets import RECIPES_YAML_FILE_PATH
+from .secrets import RECIPES_YAML_FILE_PATH
+from .usda_api import get_foods_by_id
 
 
 class TrackedIngredient(BaseModel):
@@ -11,8 +13,8 @@ class TrackedIngredient(BaseModel):
     Tracked means that I'm counting the calories/nutrition for the food.
     """
 
-    usda_id: int = -1
-    grams: int = 0
+    usda_fdc_id: int
+    grams: int
 
 
 class UntrackedIngredient(BaseModel):
@@ -21,9 +23,21 @@ class UntrackedIngredient(BaseModel):
     That is, I think the calories/nutrients are negligible.
     """
 
-    name: str = ""
-    amount: float = 0.0
-    unit: str = ""
+    name: str
+    amount: float
+    unit: str
+
+
+class RecipeNutrition(BaseModel):
+    """
+    Total nutrition for the recipe.
+    All in grams, except calories, which is in kcal.
+    """
+
+    calories: float
+    protein: float
+    carbohydrates: float
+    fat: float
 
 
 class Recipe(BaseModel):
@@ -31,9 +45,28 @@ class Recipe(BaseModel):
     tracked_ingredients: List[TrackedIngredient]
     untracked_ingredients: List[UntrackedIngredient]
 
-    @classmethod
-    def from_yaml(cls, yaml_data: dict) -> "Recipe":
-        return cls()
+    @cached_property
+    def nutrition(self) -> RecipeNutrition:
+        # Assumes FDC IDs are unique
+        fdc_ids = [ingredient.usda_fdc_id for ingredient in self.tracked_ingredients]
+        usda_foods = sorted(get_foods_by_id(fdc_ids), key=lambda x: x.fdc_id)
+
+        calories, protein, carbohydrates, fat = [0] * 4
+        for tracked_ingredient, usda_food in zip(
+            sorted(self.tracked_ingredients, key=lambda x: x.usda_fdc_id), usda_foods
+        ):
+            ratio = tracked_ingredient.grams / 100
+            calories += usda_food.calories.amount * ratio
+            protein += usda_food.protein.amount * ratio
+            carbohydrates += usda_food.carbohydrates.amount * ratio
+            fat += usda_food.fat.amount * ratio
+
+        return RecipeNutrition(
+            calories=calories,
+            protein=protein,
+            carbohydrates=carbohydrates,
+            fat=fat,
+        )
 
 
 def get_recipes() -> List[Recipe]:
@@ -47,7 +80,7 @@ def get_recipes() -> List[Recipe]:
         for key, value in recipe_data["ingredients"]["main"].items():
             tracked_ingredients.append(
                 TrackedIngredient(
-                    usda_id=key,
+                    usda_fdc_id=key,
                     grams=value,
                 )
             )
