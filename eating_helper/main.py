@@ -367,3 +367,9 @@ def grocery():
 def view():
     # print_weekly_meal_plan_stats()
     get_meal_plan_stats()
+
+    from pprint import pprint
+
+    from .data.recipe import get_recipes
+
+    pprint(get_recipes())

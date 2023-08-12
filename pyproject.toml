@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "eating_helper"
 version = "0.1.0"
-description = "Helps me eat well"
+description = "Helps me remember to cook and eat well"
 authors = ["Ben Yang <ben.yang@utexas.edu>"]
 
 [tool.poetry.dependencies]
