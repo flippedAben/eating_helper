@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from yaml import safe_load
 
 from .secrets import RECIPES_YAML_FILE_PATH
@@ -38,6 +38,22 @@ class RecipeNutrition(BaseModel):
     protein: float
     carbohydrates: float
     fat: float
+
+    @validator("calories")
+    def calories_check(cls, value):
+        return round(value, 2)
+
+    @validator("protein")
+    def protein_check(cls, value):
+        return round(value, 2)
+
+    @validator("carbohydrates")
+    def carbohydrates_check(cls, value):
+        return round(value, 2)
+
+    @validator("fat")
+    def fat_check(cls, value):
+        return round(value, 2)
 
 
 class Recipe(BaseModel):
