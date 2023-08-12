@@ -34,26 +34,10 @@ class RecipeNutrition(BaseModel):
     All in grams, except calories, which is in kcal.
     """
 
-    calories: float
-    protein: float
-    carbohydrates: float
-    fat: float
-
-    @validator("calories")
-    def calories_check(cls, value):
-        return round(value, 2)
-
-    @validator("protein")
-    def protein_check(cls, value):
-        return round(value, 2)
-
-    @validator("carbohydrates")
-    def carbohydrates_check(cls, value):
-        return round(value, 2)
-
-    @validator("fat")
-    def fat_check(cls, value):
-        return round(value, 2)
+    calories: int
+    protein: int
+    carbohydrates: int
+    fat: int
 
 
 class Recipe(BaseModel):
@@ -63,7 +47,6 @@ class Recipe(BaseModel):
 
     @cached_property
     def nutrition(self) -> RecipeNutrition:
-        # Assumes FDC IDs are unique
         fdc_ids = [ingredient.usda_fdc_id for ingredient in self.tracked_ingredients]
         usda_foods = sorted(get_foods_by_id(fdc_ids), key=lambda x: x.fdc_id)
 
@@ -78,10 +61,10 @@ class Recipe(BaseModel):
             fat += usda_food.fat.amount * ratio
 
         return RecipeNutrition(
-            calories=calories,
-            protein=protein,
-            carbohydrates=carbohydrates,
-            fat=fat,
+            calories=round(calories),
+            protein=round(protein),
+            carbohydrates=round(carbohydrates),
+            fat=round(fat),
         )
 
 
