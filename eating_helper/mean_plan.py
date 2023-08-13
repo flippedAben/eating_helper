@@ -1,3 +1,4 @@
+from enum import Enum, unique
 from functools import cached_property
 from typing import Dict, List
 
@@ -6,6 +7,109 @@ from pydantic import BaseModel
 
 from .recipes import Nutrition, Recipe, UntrackedIngredient
 from .secrets import MEAL_PLAN_YAML_FILE_PATH
+
+
+@unique
+class FoodGroup(str, Enum):
+    """
+    Food groups I use to make it easier to shop groceries.
+    """
+
+    BREAD = "bread"
+    PANTRY = "pantry"
+    DAIRY = "dairy"
+    FROZEN = "frozen"
+    PRODUCE = "produce"
+    MEAT = "meat"
+    INDIAN = "indian"  #  Go to an indian store
+    ASIAN = "asian"  #  Go to an asian store
+
+
+USDA_TO_CUSTOM_FOOD_GROUP = {
+    "Baked Products": FoodGroup.BREAD,
+    "Cereal Grains and Pasta": FoodGroup.PANTRY,
+    "Dairy and Egg Products": FoodGroup.DAIRY,
+    "Frozen": FoodGroup.FROZEN,
+    "Fruits and Fruit Juices": FoodGroup.PRODUCE,
+    "Legumes and Legume Products": FoodGroup.PANTRY,
+    "Nut and Seed Products": FoodGroup.PRODUCE,
+    "Pantry": FoodGroup.PANTRY,
+    "Poultry Products": FoodGroup.MEAT,
+    "Seafood": FoodGroup.MEAT,
+    "Soups, Sauces, and Gravies": FoodGroup.PANTRY,
+    "Vegetables and Vegetable Products": FoodGroup.PRODUCE,
+}
+
+# Some ID/names do not have groups already associated with them.
+# I manually associate them here.
+INGREDIENT_TO_CUSTOM_FOOD_GROUP = {
+    "1949692": FoodGroup.PANTRY,
+    "1859997": FoodGroup.PANTRY,
+    "1864648": FoodGroup.PRODUCE,
+    "1889879": FoodGroup.BREAD,
+    "1932883": FoodGroup.DAIRY,
+    "2024576": FoodGroup.PANTRY,
+    "2080001": FoodGroup.PANTRY,
+    "2099245": FoodGroup.MEAT,
+    "2113885": FoodGroup.PANTRY,
+    "2272524": FoodGroup.FROZEN,
+    "2273669": FoodGroup.PANTRY,
+    "2341777": FoodGroup.MEAT,
+    "2343304": FoodGroup.BREAD,
+    "2344719": FoodGroup.PRODUCE,
+    "2345725": FoodGroup.PANTRY,
+    "2345739": FoodGroup.PANTRY,
+    "386410": FoodGroup.PANTRY,
+    "562738": FoodGroup.PANTRY,
+    "577489": FoodGroup.PANTRY,
+    "595770": FoodGroup.PANTRY,
+    "981101": FoodGroup.PANTRY,
+    "bay leaf": FoodGroup.PANTRY,
+    "black pepper": FoodGroup.PANTRY,
+    "cacao powder": FoodGroup.PANTRY,
+    "cajun": FoodGroup.PANTRY,
+    "cherry tomato": FoodGroup.PRODUCE,
+    "chili powder": FoodGroup.PANTRY,
+    "chipotle in adobo sauce": FoodGroup.PANTRY,
+    "cilantro": FoodGroup.PRODUCE,
+    "cucumber": FoodGroup.PRODUCE,
+    "cumin": FoodGroup.PANTRY,
+    "dill": FoodGroup.PANTRY,
+    "five spice": FoodGroup.PANTRY,
+    "garlic powder": FoodGroup.PANTRY,
+    "garlic": FoodGroup.PRODUCE,
+    "ginger garlic paste": FoodGroup.INDIAN,
+    "green onion": FoodGroup.PRODUCE,
+    "indian spices": FoodGroup.INDIAN,
+    "jalapeno": FoodGroup.PRODUCE,
+    "ketchup": FoodGroup.PANTRY,
+    "lemon": FoodGroup.PRODUCE,
+    "lettuce": FoodGroup.PRODUCE,
+    "lime": FoodGroup.PRODUCE,
+    "long green chili": FoodGroup.INDIAN,
+    "onion powder": FoodGroup.PANTRY,
+    "paprika": FoodGroup.PANTRY,
+    "parsley": FoodGroup.PRODUCE,
+    "pico de gallo": FoodGroup.PRODUCE,
+    "poblano": FoodGroup.PRODUCE,
+    "red onion": FoodGroup.PRODUCE,
+    "salsa": FoodGroup.PRODUCE,
+    "salt": FoodGroup.PANTRY,
+    "sambal oelek": FoodGroup.PANTRY,
+    "shallot": FoodGroup.PRODUCE,
+    "soy sauce": FoodGroup.PANTRY,
+    "spinach": FoodGroup.PRODUCE,
+    "sugar": FoodGroup.PANTRY,
+    "tomato": FoodGroup.PRODUCE,
+    "vinegar": FoodGroup.PANTRY,
+    "water": FoodGroup.PANTRY,
+    "white vinegar": FoodGroup.PANTRY,
+}
+
+
+class GroceryItem(BaseModel):
+    ingredient: UntrackedIngredient
+    group: FoodGroup
 
 
 class Meal(BaseModel):
@@ -52,49 +156,83 @@ class WeeklyMealPlan(BaseModel):
         return weekly_nutrition
 
     @cached_property
-    def ingredients(self) -> List[UntrackedIngredient]:
+    def grocery_items(self) -> List[GroceryItem]:
         """
-        Returns the list of ingredients required to cook the meals for the week.
+        Returns the list of items required to cook the meals for the week.
         """
-        ingredients: List[UntrackedIngredient] = []
+        grocery_items: List[GroceryItem] = []
         for daily_meal_plan in self.weekly_meals:
             for meal in daily_meal_plan.meals:
                 for recipe in meal.recipes:
-                    ingredients.extend(recipe.untracked_ingredients)
-
-                    for ingredient in recipe.tracked_ingredients:
-                        ingredients.append(
-                            UntrackedIngredient.from_tracked_ingredient(ingredient)
+                    for ingredient in recipe.untracked_ingredients:
+                        try:
+                            group = INGREDIENT_TO_CUSTOM_FOOD_GROUP[ingredient.name]
+                        except KeyError as e:
+                            print(ingredient)
+                            raise e
+                        grocery_items.append(
+                            GroceryItem(
+                                ingredient=ingredient,
+                                group=group,
+                            )
                         )
 
-        name_to_unit_to_amount: Dict[str, Dict[str, float]] = {}
-        for ingredient in ingredients:
-            name = ingredient.name
-            if name in name_to_unit_to_amount:
-                unit = ingredient.unit
-                if unit in name_to_unit_to_amount[name]:
-                    name_to_unit_to_amount[name][unit] += ingredient.amount
-                else:
-                    name_to_unit_to_amount[name][ingredient.unit] = ingredient.amount
-            else:
-                name_to_unit_to_amount[name] = {ingredient.unit: ingredient.amount}
+                    usda_id_to_food = {
+                        food.fdc_id: food for food in recipe.usda_foods()
+                    }
+                    for ingredient in recipe.tracked_ingredients:
+                        food = usda_id_to_food[ingredient.usda_fdc_id]
+                        group = food.group
+                        if group:
+                            try:
+                                group = USDA_TO_CUSTOM_FOOD_GROUP[group]
+                            except KeyError as e:
+                                print(ingredient, group)
+                                raise e
+                        else:
+                            try:
+                                group = INGREDIENT_TO_CUSTOM_FOOD_GROUP[
+                                    str(ingredient.usda_fdc_id)
+                                ]
+                            except KeyError as e:
+                                print(ingredient, group)
+                                raise e
+                        grocery_items.append(
+                            GroceryItem(
+                                ingredient=UntrackedIngredient.from_tracked_ingredient(
+                                    ingredient,
+                                    name=food.name,
+                                ),
+                                group=group,
+                            )
+                        )
 
-        final_ingredients = []
-        ingredients_with_multiple_units = []
-        for name, unit_to_amount in name_to_unit_to_amount.items():
-            if len(unit_to_amount.keys()) == 1:
-                for unit, amount in unit_to_amount.items():
-                    final_ingredients.append(
-                        UntrackedIngredient(name=name, amount=amount, unit=unit)
-                    )
-            else:
-                ingredients_with_multiple_units.append((name, unit_to_amount))
+        name_to_items: Dict[str, List[GroceryItem]] = {}
+        for item in grocery_items:
+            if item.ingredient.name not in name_to_items:
+                name_to_items[item.ingredient.name] = []
+            name_to_items[item.ingredient.name].append(item)
 
-        if ingredients_with_multiple_units:
-            for ingredient in ingredients_with_multiple_units:
-                print(ingredient)
-            raise Exception(
-                "Multiple ingredients have more than 1 unit associated. Fix this."
+        for name, items in name_to_items.items():
+            if not all(
+                items[0].ingredient.unit == item.ingredient.unit for item in items
+            ):
+                raise Exception(
+                    "Ingredient {name} has duplicate units. Not allowed for now."
+                )
+
+        unique_grocery_items = []
+        for name, items in name_to_items.items():
+            total_amount = sum(item.ingredient.amount for item in items)
+            unique_grocery_items.append(
+                GroceryItem(
+                    ingredient=UntrackedIngredient(
+                        name=items[0].ingredient.name,
+                        amount=total_amount,
+                        unit=items[0].ingredient.unit,
+                    ),
+                    group=items[0].group,
+                )
             )
 
-        return final_ingredients
+        return unique_grocery_items

@@ -22,36 +22,40 @@ def create_grocery_list(is_dry_run=False):
     recipes: List[Recipe] = get_recipes()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
 
-    ingredients = weekly_meal_plan.ingredients
+    grocery_items = weekly_meal_plan.grocery_items
     groups: Dict[FoodGroup, List[UntrackedIngredient]] = {}
-    for ingredient in ingredients:
-        if ingredient.group not in groups:
-            groups[ingredient.group] = []
+    for item in grocery_items:
+        if item.group not in groups:
+            groups[item.group] = []
 
-        groups[ingredient.group].append(ingredient)
+        groups[item.group].append(item)
 
-    if is_dry_run:
-        return
+    service = None
+    if not is_dry_run:
+        service = get_google_tasks_service()
 
-    service = get_google_tasks_service()
-    for group, foods in actual_groups.items():
+    for group, grocery_items in groups.items():
+        group = group.value.capitalize()
         print(group)
-        parent_task = (
-            service.tasks()
-            .insert(
-                tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
-                body={"title": group},
+        if not is_dry_run:
+            parent_task = (
+                service.tasks()
+                .insert(
+                    tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
+                    body={"title": group},
+                )
+                .execute()
             )
-            .execute()
-        )
 
-        for name, description in foods:
-            print(" " * 4, " | ".join([name, description]))
-            service.tasks().insert(
-                tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
-                body={"title": f"{name} | {description}"},
-                parent=parent_task["id"],
-            ).execute()
+        for item in grocery_items:
+            task_title = f"{round(item.ingredient.amount)} {item.ingredient.unit} | {item.ingredient.name.capitalize()}"
+            print(" " * 4, task_title)
+            if not is_dry_run:
+                service.tasks().insert(
+                    tasklist=secrets.GOOGLE_TASKS_SHOPPING_LIST_ID,
+                    body={"title": task_title},
+                    parent=parent_task["id"],
+                ).execute()
 
 
 def grocery():

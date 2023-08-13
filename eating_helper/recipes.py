@@ -1,4 +1,3 @@
-from enum import Enum, unique
 from functools import cached_property
 from typing import List
 
@@ -6,23 +5,7 @@ from pydantic import BaseModel
 from yaml import safe_load
 
 from .secrets import RECIPES_YAML_FILE_PATH
-from .usda_api import get_foods_by_id
-
-
-@unique
-class FoodGroup(str, Enum):
-    """
-    Food groups I use to make it easier to shop groceries.
-    """
-
-    BREAD = "bread"
-    PANTRY = "pantry"
-    DAIRY = "dairy"
-    FROZEN = "frozen"
-    PRODUCE = "produce"
-    MEAT = "meat"
-    INDIAN = "indian"  #  Go to an indian store
-    ASIAN = "asian"  #  Go to an asian store
+from .usda_api import UsdaFood, get_foods_by_id
 
 
 class TrackedIngredient(BaseModel):
@@ -32,7 +15,6 @@ class TrackedIngredient(BaseModel):
 
     usda_fdc_id: int
     grams: int
-    group: FoodGroup
 
 
 class UntrackedIngredient(BaseModel):
@@ -44,17 +26,17 @@ class UntrackedIngredient(BaseModel):
     name: str
     amount: float
     unit: str
-    group: FoodGroup
 
     @classmethod
     def from_tracked_ingredient(
-        cls, tracked_ingredient: TrackedIngredient
+        cls,
+        tracked_ingredient: TrackedIngredient,
+        name=None,
     ) -> "UntrackedIngredient":
         return cls(
-            name=str(tracked_ingredient.usda_fdc_id),
+            name=name if name else str(tracked_ingredient.usda_fdc_id),
             amount=float(tracked_ingredient.grams),
             unit="g",
-            group=tracked_ingredient.group,
         )
 
 
@@ -82,10 +64,14 @@ class Recipe(BaseModel):
     tracked_ingredients: List[TrackedIngredient]
     untracked_ingredients: List[UntrackedIngredient]
 
-    @cached_property
-    def nutrition(self) -> Nutrition:
+    def usda_foods(self) -> List[UsdaFood]:
         fdc_ids = [ingredient.usda_fdc_id for ingredient in self.tracked_ingredients]
         usda_foods = sorted(get_foods_by_id(fdc_ids), key=lambda x: x.fdc_id)
+        return usda_foods
+
+    @cached_property
+    def nutrition(self) -> Nutrition:
+        usda_foods = self.usda_foods()
 
         calories, protein, carbohydrates, fat = [0] * 4
         for tracked_ingredient, usda_food in zip(
