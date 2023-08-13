@@ -51,6 +51,7 @@ class WeeklyMealPlan(BaseModel):
 
         return weekly_nutrition
 
+    @cached_property
     def ingredients(self) -> List[UntrackedIngredient]:
         ingredients: List[UntrackedIngredient] = []
         for daily_meal_plan in self.weekly_meals:
@@ -63,5 +64,34 @@ class WeeklyMealPlan(BaseModel):
                             UntrackedIngredient.from_tracked_ingredient(ingredient)
                         )
 
-        print(ingredients)
-        return ingredients
+        name_to_unit_to_amount: Dict[str, Dict[str, float]] = {}
+        for ingredient in ingredients:
+            name = ingredient.name
+            if name in name_to_unit_to_amount:
+                unit = ingredient.unit
+                if unit in name_to_unit_to_amount[name]:
+                    name_to_unit_to_amount[name][unit] += ingredient.amount
+                else:
+                    name_to_unit_to_amount[name][ingredient.unit] = ingredient.amount
+            else:
+                name_to_unit_to_amount[name] = {ingredient.unit: ingredient.amount}
+
+        final_ingredients = []
+        ingredients_with_multiple_units = []
+        for name, unit_to_amount in name_to_unit_to_amount.items():
+            if len(unit_to_amount.keys()) == 1:
+                for unit, amount in unit_to_amount.items():
+                    final_ingredients.append(
+                        UntrackedIngredient(name=name, amount=amount, unit=unit)
+                    )
+            else:
+                ingredients_with_multiple_units.append((name, unit_to_amount))
+
+        if ingredients_with_multiple_units:
+            for ingredient in ingredients_with_multiple_units:
+                print(ingredient)
+            raise Exception(
+                "Multiple ingredients have more than 1 unit associated. Fix this."
+            )
+
+        return final_ingredients

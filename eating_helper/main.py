@@ -1,4 +1,5 @@
 from collections import defaultdict
+from enum import Enum, unique
 from typing import List
 
 import yaml
@@ -12,85 +13,96 @@ from .recipes import Recipe, get_recipes
 DAYS_PER_WEEK = 7
 
 
-FOOD_GROUPS = {
-    "grains": "Cereal Grains and Pasta",
-    "dairy": "Dairy and Egg Products",
-    "beans": "Legumes and Legume Products",
-    "fruit": "Fruits and Fruit Juices",
-    "nuts": "Nut and Seed Products",
-    "sauce": "Soups, Sauces, and Gravies",
-    "chicken": "Poultry Products",
-    "veg": "Vegetables and Vegetable Products",
-    "bread": "Baked Products",
-    "pantry": "Pantry",
-    "frozen": "Frozen",
-    "indian": "Indian store",
-    "seafood": "Seafood",
+@unique
+class FoodGroups(str, Enum):
+    BREAD = "bread"
+    PANTRY = "pantry"
+    DAIRY = "dairy"
+    FROZEN = "frozen"
+    PRODUCE = "produce"
+    MEAT = "meat"
+    INDIAN = "indian"  #  Go to an indian store
+    ASIAN = "asian"  #  Go to an asian store
+
+
+USDA_TO_MY_FOOD_GROUPS = {
+    "Baked Products": FoodGroups.BREAD,
+    "Cereal Grains and Pasta": FoodGroups.PANTRY,
+    "Dairy and Egg Products": FoodGroups.DAIRY,
+    "Frozen": FoodGroups.FROZEN,
+    "Fruits and Fruit Juices": FoodGroups.PRODUCE,
+    "Legumes and Legume Products": FoodGroups.PANTRY,
+    "Nut and Seed Products": FoodGroups.PRODUCE,
+    "Pantry": FoodGroups.PANTRY,
+    "Poultry Products": FoodGroups.MEAT,
+    "Seafood": FoodGroups.MEAT,
+    "Soups, Sauces, and Gravies": FoodGroups.PANTRY,
+    "Vegetables and Vegetable Products": FoodGroups.PRODUCE,
 }
 
 # Some ID/names do not have groups already associated with them.
 # I manually associate them here.
 REF_TO_GROUP = {
-    1889879: FOOD_GROUPS["bread"],
-    "ketchup": FOOD_GROUPS["pantry"],
-    "tomato": FOOD_GROUPS["veg"],
-    "cherry tomato": FOOD_GROUPS["veg"],
-    "lettuce": FOOD_GROUPS["veg"],
-    "cucumber": FOOD_GROUPS["veg"],
-    "dill": FOOD_GROUPS["pantry"],
-    2345739: FOOD_GROUPS["pantry"],
-    1864648: FOOD_GROUPS["veg"],
-    "bay leaf": FOOD_GROUPS["pantry"],
-    2341777: FOOD_GROUPS["seafood"],
-    "shallot": FOOD_GROUPS["veg"],
-    "lemon": FOOD_GROUPS["fruit"],
-    "parsley": FOOD_GROUPS["veg"],
-    "cajun": FOOD_GROUPS["pantry"],
-    "spinach": FOOD_GROUPS["veg"],
-    "paprika": FOOD_GROUPS["pantry"],
-    "green onion": FOOD_GROUPS["veg"],
-    "onion powder": FOOD_GROUPS["pantry"],
-    "garlic powder": FOOD_GROUPS["pantry"],
-    "black pepper": FOOD_GROUPS["pantry"],
-    "cacao powder": FOOD_GROUPS["pantry"],
-    "chili powder": FOOD_GROUPS["pantry"],
-    "cumin": FOOD_GROUPS["pantry"],
-    "garlic": FOOD_GROUPS["veg"],
-    "jalapeno": FOOD_GROUPS["veg"],
-    "poblano": FOOD_GROUPS["veg"],
-    "lime": FOOD_GROUPS["fruit"],
-    "salsa": FOOD_GROUPS["veg"],
-    "pico de gallo": FOOD_GROUPS["veg"],
-    "salt": FOOD_GROUPS["pantry"],
-    "sugar": FOOD_GROUPS["pantry"],
-    "soy sauce": FOOD_GROUPS["pantry"],
-    "five spice": FOOD_GROUPS["pantry"],
-    "vinegar": FOOD_GROUPS["pantry"],
-    "sambal oelek": FOOD_GROUPS["pantry"],
-    "chipotle in adobo sauce": FOOD_GROUPS["pantry"],
-    "water": FOOD_GROUPS["pantry"],
-    "white vinegar": FOOD_GROUPS["pantry"],
-    "red onion": FOOD_GROUPS["veg"],
-    "cilantro": FOOD_GROUPS["veg"],
-    "indian spices": FOOD_GROUPS["indian"],
-    "long green chili": FOOD_GROUPS["indian"],
-    "ginger garlic paste": FOOD_GROUPS["indian"],
-    1859997: FOOD_GROUPS["beans"],
-    1932883: FOOD_GROUPS["dairy"],
-    2080001: FOOD_GROUPS["pantry"],
-    2113885: FOOD_GROUPS["grains"],
-    2272524: FOOD_GROUPS["frozen"],
-    2273669: FOOD_GROUPS["pantry"],
-    2343304: FOOD_GROUPS["bread"],
-    2344719: FOOD_GROUPS["fruit"],
-    386410: FOOD_GROUPS["grains"],
-    562738: FOOD_GROUPS["beans"],
-    577489: FOOD_GROUPS["pantry"],
-    595770: FOOD_GROUPS["pantry"],
-    981101: FOOD_GROUPS["grains"],
-    2099245: FOOD_GROUPS["chicken"],
-    2024576: FOOD_GROUPS["pantry"],
-    2345725: FOOD_GROUPS["pantry"],
+    "1859997": FoodGroups.PANTRY,
+    "1864648": FoodGroups.PRODUCE,
+    "1889879": FoodGroups.BREAD,
+    "1932883": FoodGroups.DAIRY,
+    "2024576": FoodGroups.PANTRY,
+    "2080001": FoodGroups.PANTRY,
+    "2099245": FoodGroups.MEAT,
+    "2113885": FoodGroups.PANTRY,
+    "2272524": FoodGroups.FROZEN,
+    "2273669": FoodGroups.PANTRY,
+    "2341777": FoodGroups.MEAT,
+    "2343304": FoodGroups.BREAD,
+    "2344719": FoodGroups.PRODUCE,
+    "2345725": FoodGroups.PANTRY,
+    "2345739": FoodGroups.PANTRY,
+    "386410": FoodGroups.PANTRY,
+    "562738": FoodGroups.PANTRY,
+    "577489": FoodGroups.PANTRY,
+    "595770": FoodGroups.PANTRY,
+    "981101": FoodGroups.PANTRY,
+    "bay leaf": FoodGroups.PANTRY,
+    "black pepper": FoodGroups.PANTRY,
+    "cacao powder": FoodGroups.PANTRY,
+    "cajun": FoodGroups.PANTRY,
+    "cherry tomato": FoodGroups.PRODUCE,
+    "chili powder": FoodGroups.PANTRY,
+    "chipotle in adobo sauce": FoodGroups.PANTRY,
+    "cilantro": FoodGroups.PRODUCE,
+    "cucumber": FoodGroups.PRODUCE,
+    "cumin": FoodGroups.PANTRY,
+    "dill": FoodGroups.PANTRY,
+    "five spice": FoodGroups.PANTRY,
+    "garlic powder": FoodGroups.PANTRY,
+    "garlic": FoodGroups.PRODUCE,
+    "ginger garlic paste": FoodGroups.INDIAN,
+    "green onion": FoodGroups.PRODUCE,
+    "indian spices": FoodGroups.INDIAN,
+    "jalapeno": FoodGroups.PRODUCE,
+    "ketchup": FoodGroups.PANTRY,
+    "lemon": FoodGroups.PRODUCE,
+    "lettuce": FoodGroups.PRODUCE,
+    "lime": FoodGroups.PRODUCE,
+    "long green chili": FoodGroups.INDIAN,
+    "onion powder": FoodGroups.PANTRY,
+    "paprika": FoodGroups.PANTRY,
+    "parsley": FoodGroups.PRODUCE,
+    "pico de gallo": FoodGroups.PRODUCE,
+    "poblano": FoodGroups.PRODUCE,
+    "red onion": FoodGroups.PRODUCE,
+    "salsa": FoodGroups.PRODUCE,
+    "salt": FoodGroups.PANTRY,
+    "sambal oelek": FoodGroups.PANTRY,
+    "shallot": FoodGroups.PRODUCE,
+    "soy sauce": FoodGroups.PANTRY,
+    "spinach": FoodGroups.PRODUCE,
+    "sugar": FoodGroups.PANTRY,
+    "tomato": FoodGroups.PRODUCE,
+    "vinegar": FoodGroups.PANTRY,
+    "water": FoodGroups.PANTRY,
+    "white vinegar": FoodGroups.PANTRY,
 }
 
 
@@ -105,32 +117,10 @@ def print_weekly_meal_plan_stats():
 
 
 def create_grocery_list(is_dry_run=False):
-    with open("./recipes.yaml", "r") as f:
-        recipes = yaml.safe_load(f)
+    recipes: List[Recipe] = get_recipes()
+    weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
+    weekly_meal_plan.ingredients
 
-    with open("./weekly_meal_plan.yaml", "r") as f:
-        meal_plan = yaml.safe_load(f)
-
-    grocery_list = {}
-    fdc_ids = []
-    for_taste_ingredients = []
-    for recipe, specs in meal_plan.items():
-        multiplier = specs["multiplier"]
-        ingredients_in_grams = recipes[recipe]["ingredients"]["main"]
-        for i, amount in ingredients_in_grams.items():
-            grocery_list[i] = multiplier * amount + grocery_list.get(i, 0)
-            fdc_ids.append(i)
-
-        other_ingredients = recipes[recipe]["ingredients"]["for_taste"]
-        if other_ingredients:
-            for i, amount in other_ingredients.items():
-                if i in grocery_list:
-                    grocery_list[i].extend([amount] * multiplier)
-                else:
-                    for_taste_ingredients.append(i)
-                    grocery_list[i] = [amount] * multiplier
-
-    fdc_id_to_info = map_fdc_ids_to_info(fdc_ids)
     groups = group_foods(fdc_id_to_info, for_taste_ingredients)
 
     actual_groups = {}
@@ -219,3 +209,4 @@ def grocery():
 
 def view():
     print_weekly_meal_plan_stats()
+    create_grocery_list(is_dry_run=True)
