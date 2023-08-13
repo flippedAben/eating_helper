@@ -15,6 +15,7 @@ requests-cache = "^0.9.7"
 tqdm = "^4.64.1"
 gcsa = "^2.1.0"
 pydantic = "^2.1.1"
+fastapi = {extras = ["all"], version = "^0.101.0"}
 
 [tool.poetry.dev-dependencies]
 black = "^22.10.0"
@@ -26,7 +27,7 @@ requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-view = "eating_helper.main:view"
+view = "eating_helper.main:view" 
 groc = "eating_helper.main:grocery"
 cal= "eating_helper.main:calendar"
 test_google_tasks_api = "eating_helper.google_api.tasks:get_google_tasks_service"
