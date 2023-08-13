@@ -1,4 +1,3 @@
-import pprint
 from collections import defaultdict
 from typing import List
 
@@ -7,7 +6,8 @@ import yaml
 import eating_helper.secrets as secrets
 from eating_helper.google_api.tasks import get_google_tasks_service
 
-from .recipes import get_recipes
+from .mean_plan import WeeklyMealPlan
+from .recipes import Recipe, get_recipes
 
 DAYS_PER_WEEK = 7
 
@@ -29,6 +29,7 @@ FOOD_GROUPS = {
 }
 
 # Some ID/names do not have groups already associated with them.
+# I manually associate them here.
 REF_TO_GROUP = {
     1889879: FOOD_GROUPS["bread"],
     "ketchup": FOOD_GROUPS["pantry"],
@@ -94,62 +95,13 @@ REF_TO_GROUP = {
 
 
 def print_weekly_meal_plan_stats():
-    with open("./weekly_meal_calendar.yaml", "r") as f:
-        meal_plan = yaml.safe_load(f)
-
-    recipes = get_recipes()
+    recipes: List[Recipe] = get_recipes()
     for recipe in recipes:
         print(recipe.name)
         print(recipe.nutrition)
-    exit()
-
-    kcal_per_day = [0] * DAYS_PER_WEEK
-    protein_per_day = [0] * DAYS_PER_WEEK
-    for meal_name in meal_plan:
-        servings = recipes[meal_name]["servings"]
-        multi = meal_plan[meal_name]["multiplier"]
-        print(meal_name, f"({servings * multi})")
-        caloric_ingredients = recipes[meal_name]["ingredients"]["main"]
-        id_to_nutrients = get_food_nutrients_by_id(caloric_ingredients.keys())
-
-        assert all([x["kcal"][1] == "kcal" for x in id_to_nutrients.values()])
-        single_meal_kcal = 0
-        for fdc_id in id_to_nutrients:
-            kcal_per_100_grams = id_to_nutrients[fdc_id]["kcal"][0]
-            single_meal_kcal += caloric_ingredients[fdc_id] * kcal_per_100_grams / 100
-        single_meal_kcal /= servings
-        print("kcal per serving:", round(single_meal_kcal))
-
-        assert all([x["protein"][1] == "g" for x in id_to_nutrients.values()])
-        single_meal_protein = 0
-        for fdc_id in id_to_nutrients:
-            protein_per_100_grams = id_to_nutrients[fdc_id]["protein"][0]
-            single_meal_protein += (
-                caloric_ingredients[fdc_id] * protein_per_100_grams / 100
-            )
-        single_meal_protein /= servings
-        print("prot per serving:", round(single_meal_protein))
-
-        days_to_eat_on = schedule_days_to_eat_meal_on(meal_plan[meal_name])
-        for i in days_to_eat_on:
-            kcal_per_day[i] += single_meal_kcal
-            protein_per_day[i] += single_meal_protein
-
-        print()
-
-    meals_per_day = get_meals_per_day(meal_plan)
-    for i, (kcal, prot, meals) in enumerate(
-        zip(kcal_per_day, protein_per_day, meals_per_day)
-    ):
-        kcal = round(kcal)
-        prot = round(prot)
-        print(i, str(kcal).ljust(8, " "), str(prot).ljust(8, " "), meals)
-
-    print()
-
-    print("kcal, weekly total:", round(sum(kcal_per_day)))
-    print("kcal, daily avg:   ", round(sum(kcal_per_day) / 7))
-    print("prot, weekly total:", round(sum(protein_per_day)))
+    weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
+    print("total weekly nutrition")
+    print(weekly_meal_plan.nutrition)
 
 
 def create_grocery_list(is_dry_run=False):

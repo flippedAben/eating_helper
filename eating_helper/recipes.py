@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import List
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from yaml import safe_load
 
 from .secrets import RECIPES_YAML_FILE_PATH
@@ -28,7 +28,7 @@ class UntrackedIngredient(BaseModel):
     unit: str
 
 
-class RecipeNutrition(BaseModel):
+class Nutrition(BaseModel):
     """
     Total nutrition for the recipe.
     All in grams, except calories, which is in kcal.
@@ -39,6 +39,13 @@ class RecipeNutrition(BaseModel):
     carbohydrates: int
     fat: int
 
+    def __iadd__(self, other: "Nutrition"):
+        self.calories += other.calories
+        self.protein += other.protein
+        self.carbohydrates += other.carbohydrates
+        self.fat += other.fat
+        return self
+
 
 class Recipe(BaseModel):
     name: str = ""
@@ -46,7 +53,7 @@ class Recipe(BaseModel):
     untracked_ingredients: List[UntrackedIngredient]
 
     @cached_property
-    def nutrition(self) -> RecipeNutrition:
+    def nutrition(self) -> Nutrition:
         fdc_ids = [ingredient.usda_fdc_id for ingredient in self.tracked_ingredients]
         usda_foods = sorted(get_foods_by_id(fdc_ids), key=lambda x: x.fdc_id)
 
@@ -60,7 +67,7 @@ class Recipe(BaseModel):
             carbohydrates += usda_food.carbohydrates.amount * ratio
             fat += usda_food.fat.amount * ratio
 
-        return RecipeNutrition(
+        return Nutrition(
             calories=round(calories),
             protein=round(protein),
             carbohydrates=round(carbohydrates),
