@@ -27,6 +27,16 @@ class UntrackedIngredient(BaseModel):
     amount: float
     unit: str
 
+    @classmethod
+    def from_tracked_ingredient(
+        cls, tracked_ingredient: TrackedIngredient
+    ) -> "UntrackedIngredient":
+        return cls(
+            name=str(tracked_ingredient.usda_fdc_id),
+            amount=float(tracked_ingredient.grams),
+            unit="g",
+        )
+
 
 class Nutrition(BaseModel):
     """

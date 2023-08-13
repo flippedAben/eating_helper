@@ -4,7 +4,7 @@ from typing import Dict, List
 import yaml
 from pydantic import BaseModel
 
-from .recipes import Nutrition, Recipe
+from .recipes import Nutrition, Recipe, UntrackedIngredient
 from .secrets import MEAL_PLAN_YAML_FILE_PATH
 
 
@@ -50,3 +50,18 @@ class WeeklyMealPlan(BaseModel):
                     weekly_nutrition += recipe.nutrition
 
         return weekly_nutrition
+
+    def ingredients(self) -> List[UntrackedIngredient]:
+        ingredients: List[UntrackedIngredient] = []
+        for daily_meal_plan in self.weekly_meals:
+            for meal in daily_meal_plan.meals:
+                for recipe in meal.recipes:
+                    ingredients.extend(recipe.untracked_ingredients)
+
+                    for ingredient in recipe.tracked_ingredients:
+                        ingredients.append(
+                            UntrackedIngredient.from_tracked_ingredient(ingredient)
+                        )
+
+        print(ingredients)
+        return ingredients
