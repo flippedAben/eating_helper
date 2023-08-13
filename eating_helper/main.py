@@ -1,14 +1,13 @@
-from collections import defaultdict
-from typing import List
+from typing import Dict, List
 
 import eating_helper.secrets as secrets
 from eating_helper.google_api.tasks import get_google_tasks_service
 
-from .mean_plan import WeeklyMealPlan
+from .mean_plan import FoodGroup, WeeklyMealPlan
 from .recipes import Recipe, UntrackedIngredient, get_recipes
 
 
-def print_weekly_meal_plan_stats():
+def view():
     recipes: List[Recipe] = get_recipes()
     for recipe in recipes:
         print(recipe.name)
@@ -16,6 +15,12 @@ def print_weekly_meal_plan_stats():
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
     print("total weekly nutrition")
     print(weekly_meal_plan.nutrition)
+
+    create_grocery_list(is_dry_run=True)
+
+
+def grocery():
+    create_grocery_list()
 
 
 def create_grocery_list(is_dry_run=False):
@@ -58,10 +63,9 @@ def create_grocery_list(is_dry_run=False):
                 ).execute()
 
 
-def grocery():
-    create_grocery_list()
-
-
-def view():
-    print_weekly_meal_plan_stats()
-    create_grocery_list(is_dry_run=True)
+def calendar():
+    recipes: List[Recipe] = get_recipes()
+    weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
+    for daily_meal_plan in weekly_meal_plan.weekly_meals:
+        daily_meal_plan.create_calendar_events()
+        break

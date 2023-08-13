@@ -3,8 +3,10 @@ from functools import cached_property
 from typing import Dict, List
 
 import yaml
+from beautiful_date import D, hours
 from pydantic import BaseModel
 
+from .google_api.calendar import add_event_to_meal_plan_calendar, get_calendar_service
 from .recipes import Nutrition, Recipe, UntrackedIngredient
 from .secrets import MEAL_PLAN_YAML_FILE_PATH
 
@@ -21,8 +23,8 @@ class FoodGroup(str, Enum):
     FROZEN = "frozen"
     PRODUCE = "produce"
     MEAT = "meat"
-    INDIAN = "indian"  #  Go to an indian store
-    ASIAN = "asian"  #  Go to an asian store
+    INDIAN = "indian"  # Go to an indian store
+    ASIAN = "asian"  # Go to an asian store
 
 
 USDA_TO_CUSTOM_FOOD_GROUP = {
@@ -118,6 +120,21 @@ class Meal(BaseModel):
 
 class DailyMealPlan(BaseModel):
     meals: List[Meal]
+
+    def create_calendar_events(self, is_dry_run=False) -> None:
+        calendar_service = get_calendar_service()
+        start = D.today()[9:00]
+        for i, meal in enumerate(self.meals):
+            meal_time = start + 4 * i * hours
+            recipe_names = [recipe.name.title() for recipe in meal.recipes]
+            print(i, meal_time, recipe_names)
+            # Cook + eat every X hours. Cook + eat takes 1 hour on average.
+            if not is_dry_run:
+                add_event_to_meal_plan_calendar(
+                    calendar_service,
+                    ", ".join(recipe_names),
+                    meal_time=meal_time,
+                )
 
 
 class WeeklyMealPlan(BaseModel):
