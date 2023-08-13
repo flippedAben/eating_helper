@@ -53,6 +53,9 @@ class WeeklyMealPlan(BaseModel):
 
     @cached_property
     def ingredients(self) -> List[UntrackedIngredient]:
+        """
+        Returns the list of ingredients required to cook the meals for the week.
+        """
         ingredients: List[UntrackedIngredient] = []
         for daily_meal_plan in self.weekly_meals:
             for meal in daily_meal_plan.meals:

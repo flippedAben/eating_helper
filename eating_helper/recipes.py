@@ -1,3 +1,4 @@
+from enum import Enum, unique
 from functools import cached_property
 from typing import List
 
@@ -8,6 +9,22 @@ from .secrets import RECIPES_YAML_FILE_PATH
 from .usda_api import get_foods_by_id
 
 
+@unique
+class FoodGroup(str, Enum):
+    """
+    Food groups I use to make it easier to shop groceries.
+    """
+
+    BREAD = "bread"
+    PANTRY = "pantry"
+    DAIRY = "dairy"
+    FROZEN = "frozen"
+    PRODUCE = "produce"
+    MEAT = "meat"
+    INDIAN = "indian"  #  Go to an indian store
+    ASIAN = "asian"  #  Go to an asian store
+
+
 class TrackedIngredient(BaseModel):
     """
     Tracked means that I'm counting the calories/nutrition for the food.
@@ -15,6 +32,7 @@ class TrackedIngredient(BaseModel):
 
     usda_fdc_id: int
     grams: int
+    group: FoodGroup
 
 
 class UntrackedIngredient(BaseModel):
@@ -26,6 +44,7 @@ class UntrackedIngredient(BaseModel):
     name: str
     amount: float
     unit: str
+    group: FoodGroup
 
     @classmethod
     def from_tracked_ingredient(
@@ -35,6 +54,7 @@ class UntrackedIngredient(BaseModel):
             name=str(tracked_ingredient.usda_fdc_id),
             amount=float(tracked_ingredient.grams),
             unit="g",
+            group=tracked_ingredient.group,
         )
 
 
