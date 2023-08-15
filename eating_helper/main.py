@@ -19,6 +19,8 @@ def view():
 
     create_grocery_list(is_dry_run=True)
 
+    weekly_meal_plan.create_calendar_events(is_dry_run=True)
+
 
 def grocery():
     create_grocery_list()
@@ -67,6 +69,4 @@ def create_grocery_list(is_dry_run=False):
 def calendar():
     recipes: List[Recipe] = get_recipes()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
-    for daily_meal_plan in weekly_meal_plan.weekly_meals:
-        daily_meal_plan.create_calendar_events()
-        break
+    weekly_meal_plan.create_calendar_events()

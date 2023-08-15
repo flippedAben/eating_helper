@@ -2,7 +2,7 @@ from functools import cached_property
 from typing import Dict, List
 
 import yaml
-from beautiful_date import D, hours
+from beautiful_date import BeautifulDate, D, days, hours
 from pydantic import BaseModel
 
 from .food_group import (
@@ -27,11 +27,10 @@ class Meal(BaseModel):
 class DailyMealPlan(BaseModel):
     meals: List[Meal]
 
-    def create_calendar_events(self, is_dry_run=False) -> None:
+    def create_calendar_events(self, day: BeautifulDate, is_dry_run=False) -> None:
         calendar_service = get_calendar_service()
-        start = D.today()[9:00]
         for i, meal in enumerate(self.meals):
-            meal_time = start + 4 * i * hours
+            meal_time = day + 4 * i * hours
             recipe_names = [recipe.name.title() for recipe in meal.recipes]
             print(i, meal_time, recipe_names)
             # Cook + eat every X hours. Cook + eat takes 1 hour on average.
@@ -159,3 +158,9 @@ class WeeklyMealPlan(BaseModel):
             )
 
         return unique_grocery_items
+
+    def create_calendar_events(self, is_dry_run=False):
+        start = D.today()[9:00] + 1 * days
+        for daily_meal_plan in self.weekly_meals:
+            daily_meal_plan.create_calendar_events(start, is_dry_run=is_dry_run)
+            start += 1 * days
