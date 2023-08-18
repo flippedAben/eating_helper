@@ -35,6 +35,8 @@ USDA_TO_CUSTOM_FOOD_GROUP = {
 # Some ID/names do not have groups already associated with them.
 # I manually associate them here.
 INGREDIENT_TO_CUSTOM_FOOD_GROUP = {
+    "1582039": FoodGroup.PANTRY,
+    "1662775": FoodGroup.PANTRY,
     "1949692": FoodGroup.PANTRY,
     "1859997": FoodGroup.PANTRY,
     "1864648": FoodGroup.PRODUCE,

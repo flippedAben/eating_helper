@@ -58,6 +58,13 @@ class Nutrition(BaseModel):
         self.fat += other.fat
         return self
 
+    @property
+    def ratios(self) -> str:
+        protein_ratio = self.protein * 4 / self.calories
+        carbs_ratio = self.carbohydrates * 4 / self.calories
+        fat_ratio = self.fat * 9 / self.calories
+        return f"{self.calories=} {protein_ratio=} {carbs_ratio=} {fat_ratio=}"
+
 
 class Recipe(BaseModel):
     name: str = ""

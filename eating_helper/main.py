@@ -9,17 +9,24 @@ from .recipes import Recipe, UntrackedIngredient, get_recipes
 
 
 def view():
+    create_grocery_list(is_dry_run=True)
+
     recipes: List[Recipe] = get_recipes()
+    weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
+    weekly_meal_plan.create_calendar_events(is_dry_run=True)
+
     for recipe in recipes:
         print(recipe.name)
         print(recipe.nutrition)
-    weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
+    print()
+
+    for daily_plan in weekly_meal_plan.weekly_meals:
+        print([recipe.name for meal in daily_plan.meals for recipe in meal.recipes])
+        print(daily_plan.nutrition)
+    print()
+
     print("total weekly nutrition")
-    print(weekly_meal_plan.nutrition)
-
-    create_grocery_list(is_dry_run=True)
-
-    weekly_meal_plan.create_calendar_events(is_dry_run=True)
+    print(weekly_meal_plan.nutrition.ratios)
 
 
 def grocery():

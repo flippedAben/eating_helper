@@ -41,6 +41,14 @@ class DailyMealPlan(BaseModel):
                     meal_time=meal_time,
                 )
 
+    @cached_property
+    def nutrition(self) -> Nutrition:
+        daily_nutrition = Nutrition(calories=0, protein=0, carbohydrates=0, fat=0)
+        for meal in self.meals:
+            for recipe in meal.recipes:
+                daily_nutrition += recipe.nutrition
+        return daily_nutrition
+
 
 class WeeklyMealPlan(BaseModel):
     weekly_meals: List[DailyMealPlan]
@@ -71,9 +79,7 @@ class WeeklyMealPlan(BaseModel):
     def nutrition(self) -> Nutrition:
         weekly_nutrition = Nutrition(calories=0, protein=0, carbohydrates=0, fat=0)
         for daily_meal_plan in self.weekly_meals:
-            for meal in daily_meal_plan.meals:
-                for recipe in meal.recipes:
-                    weekly_nutrition += recipe.nutrition
+            weekly_nutrition += daily_meal_plan.nutrition
 
         return weekly_nutrition
 
