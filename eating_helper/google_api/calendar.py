@@ -9,7 +9,7 @@ from gcsa.google_calendar import GoogleCalendar
 from google.auth.exceptions import RefreshError
 from pydantic import BaseModel
 
-from ..secrets import GOOGLE_API_CREDENTIALS_FILE_PATH, GOOGLE_MEAL_PLAN_CALENDAR_NAME
+from ..secrets import GOOGLE_MEAL_PLAN_CALENDAR_NAME
 from .auth import get_creds
 
 logging.basicConfig(level=logging.INFO)
@@ -30,7 +30,7 @@ def get_calendar_service() -> GoogleCalendar:
     try:
         return GoogleCalendar(credentials=credentials)
     except RefreshError:
-        raise Exception(f"Expired Google token. To resolve, remove token.pickle.")
+        raise Exception("Expired Google token. To resolve, remove token.pickle.")
 
 
 def add_event_to_meal_plan_calendar(

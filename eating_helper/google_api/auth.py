@@ -1,6 +1,5 @@
 import logging
 import os.path
-from typing import List
 
 from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
