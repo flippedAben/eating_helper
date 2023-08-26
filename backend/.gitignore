@@ -4,4 +4,3 @@
 *.sqlite
 *.yaml
 secrets.py
-node_modules/*
