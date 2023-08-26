@@ -10,3 +10,12 @@ This program helps me plan eating. A lot goes into eating:
   - I need to go buy groceries to make these recipes.
 - I need to cook the meals at certain times.
 
+## Development
+
+Run the backend server.
+
+```shell
+poetry run uvicorn eating_helper.web_server.main:app --reload
+```
+
+Run the frontend server.

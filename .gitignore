@@ -1,7 +1,7 @@
-*.pickle
 *.pyc
 *.pyo
-*.json
+/*.json
 *.sqlite
 *.yaml
 secrets.py
+node_modules/*
