@@ -100,4 +100,5 @@ INGREDIENT_TO_CUSTOM_FOOD_GROUP = {
     "vinegar": FoodGroup.PANTRY,
     "water": FoodGroup.PANTRY,
     "white vinegar": FoodGroup.PANTRY,
+    "white onion": FoodGroup.PRODUCE,
 }

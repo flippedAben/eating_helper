@@ -4,8 +4,7 @@ from .auth import get_creds
 
 
 def get_google_tasks_service():
-    scopes = ["https://www.googleapis.com/auth/tasks"]
-    service = build("tasks", "v1", credentials=get_creds(scopes))
+    service = build("tasks", "v1", credentials=get_creds())
     return service
 
 

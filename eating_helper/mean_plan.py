@@ -166,7 +166,7 @@ class WeeklyMealPlan(BaseModel):
         return unique_grocery_items
 
     def create_calendar_events(self, is_dry_run=False):
-        start = D.today()[9:00] + 1 * days
+        start = D.today()[9:00]
         for daily_meal_plan in self.weekly_meals:
             daily_meal_plan.create_calendar_events(start, is_dry_run=is_dry_run)
             start += 1 * days

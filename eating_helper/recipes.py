@@ -60,10 +60,19 @@ class Nutrition(BaseModel):
 
     @property
     def ratios(self) -> str:
-        protein_ratio = self.protein * 4 / self.calories
-        carbs_ratio = self.carbohydrates * 4 / self.calories
-        fat_ratio = self.fat * 9 / self.calories
-        return f"{self.calories=} {protein_ratio=} {carbs_ratio=} {fat_ratio=}"
+        calories = self.calories
+        protein_ratio = round(self.protein * 4 / self.calories, 2)
+        carbs_ratio = round(self.carbohydrates * 4 / self.calories, 2)
+        fat_ratio = round(self.fat * 9 / self.calories, 2)
+        return f"{calories=} {protein_ratio=} {carbs_ratio=} {fat_ratio=}"
+
+    @property
+    def daily_average(self) -> str:
+        calories = round(self.calories / 7, 2)
+        protein = round(self.protein / 7, 2)
+        carbs = round(self.carbohydrates / 7, 2)
+        fat = round(self.fat / 7, 2)
+        return f"{calories=} {protein=} {carbs=} {fat=}"
 
 
 class Recipe(BaseModel):

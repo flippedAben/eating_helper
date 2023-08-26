@@ -13,7 +13,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def get_creds(scopes: List[str]) -> Credentials:
+def get_creds() -> Credentials:
+    scopes = [
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/tasks",
+    ]
     creds = None
     token_json = "token.json"
     if os.path.exists(token_json):

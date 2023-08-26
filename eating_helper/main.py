@@ -27,6 +27,7 @@ def view():
 
     print("total weekly nutrition")
     print(weekly_meal_plan.nutrition.ratios)
+    print(weekly_meal_plan.nutrition.daily_average)
 
 
 def grocery():
