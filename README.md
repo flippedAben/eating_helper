@@ -19,3 +19,7 @@ poetry run uvicorn eating_helper.web_server.main:app --reload
 ```
 
 Run the frontend server.
+
+```shell
+npx next dev
+```
