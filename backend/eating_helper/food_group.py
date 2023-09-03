@@ -35,6 +35,7 @@ USDA_TO_CUSTOM_FOOD_GROUP = {
 # Some ID/names do not have groups already associated with them.
 # I manually associate them here.
 INGREDIENT_TO_CUSTOM_FOOD_GROUP = {
+    "2339116": FoodGroup.PANTRY,
     "1582039": FoodGroup.PANTRY,
     "1662775": FoodGroup.PANTRY,
     "1949692": FoodGroup.PANTRY,
@@ -60,6 +61,8 @@ INGREDIENT_TO_CUSTOM_FOOD_GROUP = {
     "981101": FoodGroup.PANTRY,
     "bay leaf": FoodGroup.PANTRY,
     "black pepper": FoodGroup.PANTRY,
+    "bread crumbs": FoodGroup.PANTRY,
+    "panko bread crumbs": FoodGroup.PANTRY,
     "cacao powder": FoodGroup.PANTRY,
     "cajun": FoodGroup.PANTRY,
     "cherry tomato": FoodGroup.PRODUCE,
@@ -84,6 +87,7 @@ INGREDIENT_TO_CUSTOM_FOOD_GROUP = {
     "lime": FoodGroup.PRODUCE,
     "long green chili": FoodGroup.INDIAN,
     "onion powder": FoodGroup.PANTRY,
+    "olive oil spray": FoodGroup.PANTRY,
     "paprika": FoodGroup.PANTRY,
     "parsley": FoodGroup.PRODUCE,
     "pico de gallo": FoodGroup.PRODUCE,

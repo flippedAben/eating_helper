@@ -15,11 +15,14 @@ This program helps me plan eating. A lot goes into eating:
 Run the backend server.
 
 ```shell
+cd backend
+poetry install
 poetry run uvicorn eating_helper.web_server.main:app --reload
 ```
 
 Run the frontend server.
 
 ```shell
+cd frontend
 npx next dev
 ```

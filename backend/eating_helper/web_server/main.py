@@ -2,7 +2,7 @@ from typing import Dict, List
 
 from fastapi import FastAPI
 
-from ..mean_plan import WeeklyMealPlan
+from ..meal_plan import WeeklyMealPlan
 from ..recipes import Recipe, get_recipes
 
 app = FastAPI()

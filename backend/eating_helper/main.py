@@ -4,7 +4,7 @@ import eating_helper.secrets as secrets
 from eating_helper.google_api.tasks import get_google_tasks_service
 
 from .food_group import FoodGroup
-from .mean_plan import WeeklyMealPlan
+from .meal_plan import WeeklyMealPlan
 from .recipes import Recipe, UntrackedIngredient, get_recipes
 
 
