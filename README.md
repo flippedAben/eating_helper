@@ -8,7 +8,18 @@ This program helps me plan eating. A lot goes into eating:
 - I favor cooking meals, which means:
   - I have recipes I want to make per day.
   - I need to go buy groceries to make these recipes.
-- I need to cook the meals at certain times.
+- I need to cook/eat the meals at certain times.
+
+How does this program help? It does a few things:
+
+- Generates macronutrient info.
+- Adds events to your Google Calendar to remind you when to eat.
+- Creates a grocery list from your weekly meal plan.
+
+There is manual effort involved. You have to create some files in order for this to work:
+
+- `recipes.yaml`
+- `weekly_meal_plan.yaml`
 
 ## Development
 

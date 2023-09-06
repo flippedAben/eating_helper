@@ -36,11 +36,8 @@ def get_calendar_service() -> GoogleCalendar:
 def add_event_to_meal_plan_calendar(
     gc: GoogleCalendar, name: str, meal_time: BeautifulDate
 ):
-    event = Event(
-        name,
-        start=meal_time,
-        end=meal_time + 1 * hours,
-    )
+    event = Event(name, start=meal_time, end=meal_time + 1 * hours)
+    event.add_popup_reminder(5)
     calendar = get_meal_plan_calendar(gc)
     gc.add_event(
         event,

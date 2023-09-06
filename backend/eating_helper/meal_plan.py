@@ -146,7 +146,7 @@ class WeeklyMealPlan(BaseModel):
                 items[0].ingredient.unit == item.ingredient.unit for item in items
             ):
                 raise Exception(
-                    "Ingredient {name} has duplicate units. Not allowed for now."
+                    f"Ingredient {name} has duplicate units. Not allowed for now."
                 )
 
         unique_grocery_items = []
@@ -165,8 +165,8 @@ class WeeklyMealPlan(BaseModel):
 
         return unique_grocery_items
 
-    def create_calendar_events(self, is_dry_run=False):
-        start = D.today()[9:00] + 1 * days
+    def create_calendar_events(self, days_after: int, is_dry_run=False):
+        start = D.today()[9:00] + days_after * days
         for daily_meal_plan in self.weekly_meals:
             daily_meal_plan.create_calendar_events(start, is_dry_run=is_dry_run)
             start += 1 * days
