@@ -35,5 +35,5 @@ Run the frontend server.
 
 ```shell
 cd frontend
-npx next dev
+npm next dev
 ```
