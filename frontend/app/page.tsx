@@ -22,7 +22,7 @@ export default async function IndexPage() {
           <div className="inline font-bold">hel</div>
           per
         </h1>
-        <p className="text-muted-foreground max-w-[700px] text-lg">
+        <p className="max-w-[700px] text-lg text-muted-foreground">
           Helps you eat.
         </p>
       </div>
