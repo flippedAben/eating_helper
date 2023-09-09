@@ -10,9 +10,8 @@
  *
  */
 export type Nutrition = {
-    calories: number;
-    protein: number;
-    carbohydrates: number;
-    fat: number;
-};
-
+  calories: number
+  protein: number
+  carbohydrates: number
+  fat: number
+}
