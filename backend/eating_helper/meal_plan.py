@@ -63,15 +63,17 @@ class WeeklyMealPlan(BaseModel):
             yaml_data = yaml.safe_load(f)
 
         name_to_recipe = {recipe.name: recipe for recipe in recipes}
+        name_to_recipe["eat out"] = None
 
         weekly_meal_plan = []
         for _, meals_dict in yaml_data.items():
             meals: List[Meal] = []
             for _, recipe_names in meals_dict.items():
                 recipes: List[Recipe] = []
-                for name in recipe_names:
-                    recipes.append(name_to_recipe[name])
-                meals.append(Meal(recipes=recipes))
+                if recipe_names:
+                    for name in recipe_names:
+                        recipes.append(name_to_recipe[name])
+                    meals.append(Meal(recipes=recipes))
             weekly_meal_plan.append(DailyMealPlan(meals=meals))
         return cls(weekly_meals=weekly_meal_plan)
 

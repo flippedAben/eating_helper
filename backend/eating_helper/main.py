@@ -9,11 +9,11 @@ from .recipes import Recipe, UntrackedIngredient, get_recipes
 
 
 def view():
-    create_grocery_list(is_dry_run=True)
+    # create_grocery_list(is_dry_run=True)
 
     recipes: List[Recipe] = get_recipes()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
-    weekly_meal_plan.create_calendar_events(is_dry_run=True)
+    # weekly_meal_plan.create_calendar_events(0, is_dry_run=True)
 
     for recipe in recipes:
         print(recipe.name)
