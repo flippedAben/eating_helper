@@ -1,5 +1,6 @@
 import "@/styles/globals.css"
 import { Metadata } from "next"
+import { OpenAPI } from "@/autogen/client"
 
 import { siteConfig } from "@/config/site"
 import { fontSans } from "@/lib/fonts"
@@ -30,6 +31,9 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  // Overwrite OpenAPI base URL.
+  // TODO: find a better way to do this.
+  OpenAPI.BASE = "http://localhost:8000"
   return (
     <>
       <html lang="en" suppressHydrationWarning>

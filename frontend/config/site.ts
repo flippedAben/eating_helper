@@ -13,5 +13,6 @@ export const siteConfig = {
   links: {
     github: "https://github.com/flippedAben/eating_helper",
     docs: "https://ui.shadcn.com",
+    backend: "http://localhost:8000",
   },
 }
