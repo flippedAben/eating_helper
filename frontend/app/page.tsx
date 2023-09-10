@@ -1,17 +1,22 @@
 import { DefaultService } from "@/autogen/client/index"
+import { startCase } from "lodash"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+import { DataTable } from "@/components/ui/data-table"
+import { RecipesNutrition, columns } from "@/components/columns"
 
 export default async function IndexPage() {
-  const data = await DefaultService.getWeeklyNutritionApiNutritionGet()
+  const weekly_data = await DefaultService.getWeeklyNutritionApiNutritionGet()
+  const recipes_data = await DefaultService.getRecipesApiRecipesGet()
+  const data: RecipesNutrition[] = [
+    { name: "Weekly", ...weekly_data },
+    ...recipes_data.map((recipe) => {
+      return {
+        name: startCase(recipe.name),
+        ...recipe.nutrition,
+      }
+    }),
+  ]
   console.log(data)
 
   return (
@@ -22,33 +27,16 @@ export default async function IndexPage() {
           <div className="inline font-bold">hel</div>
           per
         </h1>
-        <p className="max-w-[700px] text-lg text-muted-foreground">
+        <p className="text-muted-foreground max-w-[700px] text-lg">
           Helps you eat.
         </p>
       </div>
-      <Card className="w-1/2">
+      <Card>
         <CardHeader>
-          <CardTitle>Weekly nutrition</CardTitle>
+          <CardTitle>Nutrition</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Item</TableHead>
-                <TableHead>Amount Per Week</TableHead>
-                <TableHead>Average Per Day</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Object.entries(data).map(([key, value]) => (
-                <TableRow>
-                  <TableCell>{key}</TableCell>
-                  <TableCell>{value}</TableCell>
-                  <TableCell>{Math.round(value / 7)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable columns={columns} data={data} />
         </CardContent>
       </Card>
     </section>
