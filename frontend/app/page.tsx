@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table"
 
 export default async function IndexPage() {
-  const data = await DefaultService.getWeeklyNutritionNutritionGet()
+  const data = await DefaultService.getWeeklyNutritionApiNutritionGet()
   console.log(data)
 
   return (

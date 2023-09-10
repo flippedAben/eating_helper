@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
-    "generate-client": "openapi --input http://localhost:8000/openapi.json --output ./autogen/client"
+    "generate-client": "openapi --input http://localhost:8000/api/openapi.json --output ./autogen/client"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
