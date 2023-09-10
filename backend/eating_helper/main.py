@@ -5,13 +5,13 @@ from eating_helper.google_api.tasks import get_google_tasks_service
 
 from .food_group import FoodGroup
 from .meal_plan import WeeklyMealPlan
-from .recipes import Recipe, UntrackedIngredient, get_recipes
+from .recipes import Recipe, UntrackedIngredient, get_recipes_from_yaml
 
 
 def view():
     # create_grocery_list(is_dry_run=True)
 
-    recipes: List[Recipe] = get_recipes()
+    recipes: List[Recipe] = get_recipes_from_yaml()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
     # weekly_meal_plan.create_calendar_events(0, is_dry_run=True)
 
@@ -35,7 +35,7 @@ def grocery():
 
 
 def create_grocery_list(is_dry_run=False):
-    recipes: List[Recipe] = get_recipes()
+    recipes: List[Recipe] = get_recipes_from_yaml()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
 
     grocery_items = weekly_meal_plan.grocery_items
@@ -75,6 +75,6 @@ def create_grocery_list(is_dry_run=False):
 
 
 def calendar():
-    recipes: List[Recipe] = get_recipes()
+    recipes: List[Recipe] = get_recipes_from_yaml()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
     weekly_meal_plan.create_calendar_events(0)

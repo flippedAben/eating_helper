@@ -107,7 +107,7 @@ class Recipe(BaseModel):
         )
 
 
-def get_recipes() -> List[Recipe]:
+def get_recipes_from_yaml() -> List[Recipe]:
     yaml_data: dict | None = None
     with open(RECIPES_YAML_FILE_PATH, "r") as f:
         yaml_data = safe_load(f)

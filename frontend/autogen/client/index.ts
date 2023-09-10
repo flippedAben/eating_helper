@@ -7,6 +7,7 @@ export { CancelablePromise, CancelError } from "./core/CancelablePromise"
 export { OpenAPI } from "./core/OpenAPI"
 export type { OpenAPIConfig } from "./core/OpenAPI"
 
+export type { GetRecipesResponse } from "./models/GetRecipesResponse"
 export type { Nutrition } from "./models/Nutrition"
 
 export { DefaultService } from "./services/DefaultService"
