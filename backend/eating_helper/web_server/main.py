@@ -18,10 +18,11 @@ async def root() -> Dict:
 
 
 @app.get("/api/nutrition")
-async def get_weekly_nutrition() -> Nutrition:
+async def get_weekly_nutrition() -> List[Nutrition]:
     recipes: List[Recipe] = get_recipes_from_yaml()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
-    return weekly_meal_plan.nutrition
+    response = [daily_plan.nutrition for daily_plan in weekly_meal_plan.weekly_meals]
+    return response
 
 
 class GetRecipesResponse(BaseModel):
@@ -32,7 +33,6 @@ class GetRecipesResponse(BaseModel):
 @app.get("/api/recipes")
 async def get_recipes() -> List[GetRecipesResponse]:
     recipes: List[Recipe] = get_recipes_from_yaml()
-    print(recipes)
     response = []
     for recipe in recipes:
         response.append(

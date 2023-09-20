@@ -32,7 +32,6 @@ class DailyMealPlan(BaseModel):
         for i, meal in enumerate(self.meals):
             meal_time = day + 4 * i * hours
             recipe_names = [recipe.name.title() for recipe in meal.recipes]
-            print(i, meal_time, recipe_names)
             # Cook + eat every X hours. Cook + eat takes 1 hour on average.
             if not is_dry_run:
                 add_event_to_meal_plan_calendar(

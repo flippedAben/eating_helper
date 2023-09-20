@@ -27,7 +27,9 @@ export class DefaultService {
    * @returns Nutrition Successful Response
    * @throws ApiError
    */
-  public static getWeeklyNutritionApiNutritionGet(): CancelablePromise<Nutrition> {
+  public static getWeeklyNutritionApiNutritionGet(): CancelablePromise<
+    Array<Nutrition>
+  > {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/nutrition",

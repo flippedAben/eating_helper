@@ -9,7 +9,12 @@ export default async function IndexPage() {
   const weekly_data = await DefaultService.getWeeklyNutritionApiNutritionGet()
   const recipes_data = await DefaultService.getRecipesApiRecipesGet()
   const data: RecipesNutrition[] = [
-    { name: "Weekly", ...weekly_data },
+    ...weekly_data.map((nutrition, index) => {
+      return {
+        name: `Day ${index}`,
+        ...nutrition,
+      }
+    }),
     ...recipes_data.map((recipe) => {
       return {
         name: startCase(recipe.name),
@@ -17,7 +22,6 @@ export default async function IndexPage() {
       }
     }),
   ]
-  console.log(data)
 
   return (
     <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
