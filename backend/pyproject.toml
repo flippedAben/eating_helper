@@ -19,7 +19,6 @@ fastapi = {extras = ["all"], version = "^0.101.0"}
 
 [tool.poetry.dev-dependencies]
 black = "^22.10.0"
-flake8 = "^6.1.0"
 ruff = "^0.0.292"
 
 [build-system]
@@ -32,3 +31,6 @@ groc = "eating_helper.main:grocery"
 cal= "eating_helper.main:calendar"
 test_google_tasks_api = "eating_helper.google_api.tasks:get_google_tasks_service"
 test_google_calendar_api = "eating_helper.google_api.calendar:test"
+
+[tool.ruff]
+target-version = "py310"
