@@ -26,7 +26,8 @@ class UsdaFood(BaseModel):
     fdc_id: int
     name: str
     group: str | None
-    # each nutrient's amount is per 100g of the food. Example: 13g protein per 100g of oats
+    # each nutrient's amount is per 100g of the food.
+    # Example: 13g protein per 100g of oats
     nutrients: List[UsdaNutrient]
 
     # The following are all in grams, except calories, which is in kcal.

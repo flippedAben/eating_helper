@@ -19,8 +19,8 @@ fastapi = {extras = ["all"], version = "^0.101.0"}
 
 [tool.poetry.dev-dependencies]
 black = "^22.10.0"
-isort = "^5.12.0"
 flake8 = "^6.1.0"
+ruff = "^0.0.292"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -32,10 +32,3 @@ groc = "eating_helper.main:grocery"
 cal= "eating_helper.main:calendar"
 test_google_tasks_api = "eating_helper.google_api.tasks:get_google_tasks_service"
 test_google_calendar_api = "eating_helper.google_api.calendar:test"
-
-[tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-line_length = 88
-profile = "black"

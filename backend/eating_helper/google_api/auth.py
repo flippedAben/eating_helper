@@ -39,7 +39,7 @@ def get_creds() -> Credentials:
             GOOGLE_API_CREDENTIALS_FILE_PATH,
             scopes,
         )
-        creds = flow.run_local_server()
+        creds = flow.run_local_server(port=8081)
 
     # Save the credentials for the next run
     with open(token_json, "w") as token:

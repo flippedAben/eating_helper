@@ -42,7 +42,10 @@ def create_grocery_list(is_dry_run=False):
             )
 
         for item in grocery_items:
-            task_title = f"{round(item.ingredient.amount)} {item.ingredient.unit} | {item.ingredient.name.capitalize()}"
+            name = item.ingredient.name.capitalize()
+            task_title = (
+                f"{round(item.ingredient.amount)} {item.ingredient.unit} | {name}"
+            )
             print(" " * 4, task_title)
             if not is_dry_run:
                 service.tasks().insert(
@@ -55,4 +58,4 @@ def create_grocery_list(is_dry_run=False):
 def calendar():
     recipes: List[Recipe] = get_recipes_from_yaml()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
-    weekly_meal_plan.create_calendar_events(0)
+    weekly_meal_plan.create_calendar_events(1)
