@@ -1,5 +1,6 @@
 import { DefaultService } from "@/autogen/client/index"
 import { startCase } from "lodash"
+import { Bold } from "lucide-react"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DataTable } from "@/components/ui/data-table"
@@ -8,10 +9,11 @@ import { RecipesNutrition, columns } from "@/components/columns"
 export default async function IndexPage() {
   const weekly_data = await DefaultService.getWeeklyNutritionApiNutritionGet()
   const recipes_data = await DefaultService.getRecipesApiRecipesGet()
+  const day_of_week = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
   const data: RecipesNutrition[] = [
     ...weekly_data.map((nutrition, index) => {
       return {
-        name: `Day ${index}`,
+        name: day_of_week[(index + 5) % 7],
         ...nutrition,
       }
     }),
@@ -22,6 +24,10 @@ export default async function IndexPage() {
       }
     }),
   ]
+  const total_weekly_calories = weekly_data
+    .map((a) => a.calories)
+    .reduce((a, b) => a + b)
+  const average_daily_calories = total_weekly_calories / 7
 
   return (
     <section className="container grid items-center gap-6 pb-8 pt-6 md:py-10">
@@ -40,6 +46,12 @@ export default async function IndexPage() {
           <CardTitle>Nutrition</CardTitle>
         </CardHeader>
         <CardContent>
+          <div className="pb-8">
+            Total weekly calories: {total_weekly_calories}
+          </div>
+          <div className="pb-8">
+            Average daily calories: {average_daily_calories}
+          </div>
           <DataTable columns={columns} data={data} />
         </CardContent>
       </Card>

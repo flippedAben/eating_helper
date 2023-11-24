@@ -58,4 +58,4 @@ def create_grocery_list(is_dry_run=False):
 def calendar():
     recipes: List[Recipe] = get_recipes_from_yaml()
     weekly_meal_plan = WeeklyMealPlan.from_yaml_and_recipes(recipes)
-    weekly_meal_plan.create_calendar_events(1)
+    weekly_meal_plan.create_calendar_events(2)

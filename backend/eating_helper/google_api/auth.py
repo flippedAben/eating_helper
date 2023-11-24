@@ -22,6 +22,27 @@ def get_creds() -> Credentials:
     if os.path.exists(token_json):
         creds = Credentials.from_authorized_user_file(token_json, scopes)
 
+    refreshed_token: bool = try_refresh_token(creds)
+    if not refreshed_token:
+        if os.path.exists(token_json):
+            logger.info("Removing existing expired token.")
+            os.remove(token_json)
+
+        logger.info("Getting new token.")
+        flow = InstalledAppFlow.from_client_secrets_file(
+            GOOGLE_API_CREDENTIALS_FILE_PATH,
+            scopes,
+        )
+        creds = flow.run_local_server(port=8082)
+
+    # Save the credentials for the next run
+    with open(token_json, "w") as token:
+        token.write(creds.to_json())
+
+    return creds
+
+
+def try_refresh_token(creds: Credentials) -> bool:
     if creds:
         logger.info(
             f"Got cached token. Status: {creds.expired=} {creds.refresh_token=}"
@@ -30,19 +51,12 @@ def get_creds() -> Credentials:
             try:
                 creds.refresh(Request())
                 logger.info("Refreshed token.")
+                return True
             except RefreshError as e:
-                logger.error("Failed to refresh token.")
-                raise e
-    else:
-        logger.info("Getting new token.")
-        flow = InstalledAppFlow.from_client_secrets_file(
-            GOOGLE_API_CREDENTIALS_FILE_PATH,
-            scopes,
-        )
-        creds = flow.run_local_server(port=8081)
-
-    # Save the credentials for the next run
-    with open(token_json, "w") as token:
-        token.write(creds.to_json())
-
-    return creds
+                error_data = e.args[1]
+                if error_data["error"] == "invalid_grant":
+                    return False
+                else:
+                    logger.error("Failed to refresh token due to unexpected error.")
+                    raise e
+    return False

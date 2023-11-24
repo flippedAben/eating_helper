@@ -30,7 +30,7 @@ class DailyMealPlan(BaseModel):
     def create_calendar_events(self, day: BeautifulDate, is_dry_run=False) -> None:
         calendar_service = get_calendar_service()
         for i, meal in enumerate(self.meals):
-            meal_time = day + 4 * i * hours
+            meal_time = day + 3 * i * hours
             recipe_names = [recipe.name.title() for recipe in meal.recipes]
             # Cook + eat every X hours. Cook + eat takes 1 hour on average.
             if not is_dry_run:
